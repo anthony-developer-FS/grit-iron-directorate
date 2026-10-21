@@ -1,0 +1,30 @@
+name: Smoke test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: 4.5.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot
+        run: |
+          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" godot
+          rm godot.zip
+
+      - name: Import project
+        run: ./godot --headless --import || true
+
+      - name: Run smoke test
+        run: |
+          ./godot --headless --fixed-fps 60 res://tests/smoke_test.tscn 2>&1 | tee smoke.log
+          grep -q "SMOKE TEST PASSED" smoke.log
+          ! grep -q "SCRIPT ERROR" smoke.log
