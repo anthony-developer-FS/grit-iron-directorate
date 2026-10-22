@@ -11,6 +11,7 @@ import vehicles  # noqa: E402
 import pow as pow_art  # noqa: E402
 import world  # noqa: E402
 import boss  # noqa: E402
+import fx  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "sprites")
 
@@ -29,6 +30,7 @@ def main():
     outputs.update(pow_art.build())
     outputs.update(world.build())
     outputs.update(boss.build())
+    outputs.update(fx.build())
     for name, image in outputs.items():
         image.save(os.path.join(OUT, name))
         print("wrote", name, image.size)
