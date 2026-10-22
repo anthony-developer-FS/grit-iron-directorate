@@ -15,7 +15,7 @@ A Metal Slug style run-and-gun shooter, built in Godot 4. This is Game 1 of the 
 | 1 | Design doc | Done |
 | 2 | Playable prototype with placeholder art | Done |
 | 3 | Full Mission 1 in gray-box art, with the boss | Done |
-| 4 | Final art, sound, menus and desktop builds | In progress: art, sound and menus done |
+| 4 | Final art, sound, menus and desktop builds | Done |
 
 ## Mission 1: Operation Breakwater
 
@@ -41,6 +41,30 @@ Weapons drop as the gun itself. A special weapon lasts until its ammo runs out o
 2. Clone this repo. With GitHub Desktop it lands in `Documents/GitHub/grit-iron-directorate`.
 3. Open Godot, click **Import**, and pick the `project.godot` file in that folder.
 4. Press **F5** (or the Play button) to run.
+
+## Desktop builds
+
+`export_presets.cfg` has three presets: **Windows** (64-bit .exe), **macOS** (universal .app for Intel and Apple Silicon, zipped) and **Linux** (64-bit). Each is a single file with the game packed inside.
+
+**From GitHub:** open the **Actions** tab, pick **Desktop builds**, and click **Run workflow**. Pushing a tag such as `v0.1.0` runs it too. When it finishes, the three builds are on the run's page under **Artifacts**.
+
+**From Godot:** install the export templates once (**Editor > Manage Export Templates > Download and Install**), then **Project > Export**, pick a preset and **Export Project**. Or from a terminal:
+
+```
+godot --headless --export-release Windows
+godot --headless --export-release macOS
+godot --headless --export-release Linux
+```
+
+The files land in `build/` (ignored by git).
+
+A few things to know before shipping:
+
+- **Linux:** downloads lose the "executable" flag, so run `chmod +x VanguardOps.x86_64` once.
+- **macOS:** the app is signed ad hoc, not with an Apple Developer ID, so macOS warns the first time. Right-click the app and choose **Open**. For the website and Steam, sign and notarize it with a Developer ID (the preset's **Codesign** and **Notarization** options).
+- **Windows:** the .exe isn't code-signed, so SmartScreen may warn on downloads from the website. Steam builds don't need signing.
+- **Steam:** upload each build as its own depot with SteamPipe. No Steamworks features (achievements, cloud saves) are wired in yet.
+- The version is set in **Project Settings > Application > Config > Version** (now 0.1.0).
 
 ## Controls
 

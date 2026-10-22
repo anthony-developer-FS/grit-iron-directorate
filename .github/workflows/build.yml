@@ -1,0 +1,67 @@
+name: Desktop builds
+
+# Run from the Actions tab ("Run workflow"), or push a tag such as v0.1.0.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: 4.5.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot
+        run: |
+          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" godot
+          rm godot.zip
+
+      - name: Cache export templates
+        id: templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: godot-templates-${{ env.GODOT_VERSION }}
+
+      - name: Download export templates
+        if: steps.templates.outputs.cache-hit != 'true'
+        run: |
+          dir=~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          mkdir -p "$dir"
+          curl -sSL -o templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -q -j templates.tpz 'templates/linux_*x86_64' 'templates/windows_*x86_64*' 'templates/macos.zip' 'templates/version.txt' -d "$dir"
+          rm templates.tpz
+
+      - name: Import project
+        run: ./godot --headless --import || true
+
+      - name: Export
+        run: |
+          mkdir -p build/windows build/macos build/linux
+          for preset in Windows macOS Linux; do
+            ./godot --headless --export-release "$preset" 2>&1 | tee "export-$preset.log"
+            ! grep -q "ERROR" "export-$preset.log"
+          done
+          test -f build/windows/VanguardOps.exe
+          test -f build/macos/VanguardOps.zip
+          test -f build/linux/VanguardOps.x86_64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VanguardOps-windows
+          path: build/windows/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VanguardOps-macos
+          path: build/macos/VanguardOps.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VanguardOps-linux
+          path: build/linux/
