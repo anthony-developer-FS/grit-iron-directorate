@@ -17,6 +17,8 @@ const INVULNERABLE_TIME := 2.0
 const HIT_INVULNERABLE_TIME := 1.0
 const HMG_SWEEP_SPEED := 14.0
 const PLATFORM_LAYER := 4
+## Special weapons last this long (or until their ammo runs out, whichever comes first).
+const SPECIAL_WEAPON_TIME := 30.0
 
 ## kind: how the weapon fires. bullet = one shot, pellets = shotgun spread, flame = piercing bursts, rocket = homing rocket.
 const WEAPONS := {
@@ -45,6 +47,8 @@ var weapon := "pistol"
 var ammo := -1
 ## The last special weapon Grit picked up. Ammo boxes bring it back if he's down to the pistol.
 var last_special := ""
+## Seconds left on the special weapon in hand.
+var weapon_time_left := 0.0
 ## Hits left in this life (1 on Hard, 3 on Easy).
 var health := 1
 ## Set by the camera every frame so Grit can't leave the screen.
@@ -79,6 +83,7 @@ func _physics_process(delta: float) -> void:
 	_invulnerable = maxf(_invulnerable - delta, 0.0)
 	_knife_flash = maxf(_knife_flash - delta, 0.0)
 	_muzzle_flash = maxf(_muzzle_flash - delta, 0.0)
+	_tick_weapon_timer(delta)
 
 	var direction := Input.get_axis("move_left", "move_right")
 	if direction != 0.0:
@@ -127,7 +132,21 @@ func give_weapon(weapon_name: String) -> void:
 		last_special = weapon_name
 	weapon = weapon_name
 	ammo = WEAPONS[weapon_name]["ammo"]
+	weapon_time_left = SPECIAL_WEAPON_TIME if weapon_name != "pistol" else 0.0
 	Game.set_weapon(WEAPONS[weapon_name]["label"], ammo)
+	Game.weapon_timer_changed.emit(ceili(weapon_time_left))
+
+
+func _tick_weapon_timer(delta: float) -> void:
+	if weapon == "pistol":
+		return
+	var shown := ceili(weapon_time_left)
+	weapon_time_left -= delta
+	if weapon_time_left <= 0.0:
+		give_weapon("pistol")
+		Game.show_message("OUT OF TIME!", 1.0)
+	elif ceili(weapon_time_left) != shown:
+		Game.weapon_timer_changed.emit(ceili(weapon_time_left))
 
 
 ## Ammo box: refills the special weapon in hand, or re-arms the last one Grit had

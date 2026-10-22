@@ -15,6 +15,9 @@ const TITLE_SCENE := "res://scenes/ui/title.tscn"
 @onready var _results_label: Label = $Results/Text
 
 var _message_time := 0.0
+var _weapon_label := "PISTOL"
+var _weapon_ammo := -1
+var _weapon_seconds := 0
 var _health := 1
 var _pow_total := 0
 var _showing_results := false
@@ -30,6 +33,9 @@ func _ready() -> void:
 		_refresh_lives())
 	Game.grenades_changed.connect(_on_grenades_changed)
 	Game.weapon_changed.connect(_on_weapon_changed)
+	Game.weapon_timer_changed.connect(func(seconds: int) -> void:
+		_weapon_seconds = seconds
+		_refresh_arms())
 	Game.message_requested.connect(_on_message_requested)
 	Game.boss_health_changed.connect(_on_boss_health_changed)
 	Game.game_over.connect(_on_game_over)
@@ -104,7 +110,18 @@ func _on_grenades_changed(grenades: int) -> void:
 
 
 func _on_weapon_changed(label: String, ammo: int) -> void:
-	_arms_label.text = "%s %s" % [label, "--" if ammo < 0 else str(ammo)]
+	_weapon_label = label
+	_weapon_ammo = ammo
+	_refresh_arms()
+
+
+func _refresh_arms() -> void:
+	var text := "%s %s" % [_weapon_label, "--" if _weapon_ammo < 0 else str(_weapon_ammo)]
+	if _weapon_ammo >= 0 and _weapon_seconds > 0:
+		text += "  %ds" % _weapon_seconds
+	_arms_label.text = text
+	# Warn in red for the last 5 seconds.
+	_arms_label.modulate = Color("ff6a4a") if _weapon_ammo >= 0 and _weapon_seconds <= 5 else Color.WHITE
 
 
 func _on_message_requested(text: String, duration: float) -> void:
