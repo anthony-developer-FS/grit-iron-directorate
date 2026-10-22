@@ -17,6 +17,7 @@ var _time := 0.0
 
 func _ready() -> void:
 	Game.shake(shake_strength, 0.25)
+	Sfx.play("explosion")
 	var targets: Array[Node] = []
 	if hurts_enemies:
 		targets.append_array(get_tree().get_nodes_in_group("enemies"))

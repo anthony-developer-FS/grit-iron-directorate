@@ -122,6 +122,7 @@ func _physics_process(delta: float) -> void:
 			_drop_through_platform()
 		else:
 			velocity.y = JUMP_VELOCITY
+			Sfx.play("jump")
 
 	move_and_slide()
 	if parachuting and is_on_floor():
@@ -163,6 +164,7 @@ func _tick_weapon_timer(delta: float) -> void:
 	weapon_time_left -= delta
 	if weapon_time_left <= 0.0:
 		give_weapon("pistol")
+		Sfx.play("weapon_empty")
 		Game.show_message("OUT OF TIME!", 1.0)
 	elif ceili(weapon_time_left) != shown:
 		Game.weapon_timer_changed.emit(ceili(weapon_time_left))
@@ -189,6 +191,7 @@ func take_damage(_amount: int) -> void:
 	else:
 		_invulnerable = HIT_INVULNERABLE_TIME
 		Game.shake(2.0, 0.15)
+		Sfx.play("player_hurt")
 
 
 func kill(ignore_invulnerability := false) -> void:
@@ -198,6 +201,7 @@ func kill(ignore_invulnerability := false) -> void:
 		return
 	dead = true
 	_dead_time = 0.0
+	Sfx.play("player_die", 0.0)
 	parachuting = false
 	velocity = Vector2.ZERO
 	_set_crouching(false)
@@ -298,6 +302,7 @@ func _handle_shooting() -> void:
 	var knife_target := _find_knife_target()
 	if knife_target:
 		knife_target.take_damage(KNIFE_DAMAGE)
+		Sfx.play("knife")
 		_knife_flash = 0.12
 		_fire_cooldown = 0.25
 		return
@@ -317,12 +322,14 @@ func _handle_shooting() -> void:
 		_:
 			_spawn_bullet(aim_angle + randf_range(-1.0, 1.0) * float(stats["spread"]), stats, Bullet.Style.BULLET)
 	_fire_cooldown = stats["cooldown"]
+	Sfx.play(weapon)
 	_muzzle_flash = 0.05
 
 	if ammo > 0:
 		ammo -= 1
 		if ammo == 0:
 			give_weapon("pistol")
+			Sfx.play("weapon_empty")
 		else:
 			Game.set_weapon(stats["label"], ammo)
 
@@ -347,6 +354,7 @@ func _find_knife_target() -> Node2D:
 func _throw_grenade() -> void:
 	if not Game.use_grenade():
 		return
+	Sfx.play("grenade_throw")
 	var grenade := GrenadeScene.instantiate() as Grenade
 	grenade.position = global_position + Vector2(facing * 4, -10 if crouching else -20)
 	grenade.velocity = Vector2(facing * 120.0 + velocity.x * 0.5, -150.0)

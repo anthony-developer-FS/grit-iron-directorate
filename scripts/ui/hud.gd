@@ -68,6 +68,7 @@ func _process(delta: float) -> void:
 
 	if get_tree().paused:
 		if Input.is_action_just_pressed("pause"):
+			Sfx.play("pause", 0.0)
 			get_tree().paused = false
 			_center_label.text = ""
 		elif Input.is_action_just_pressed("grenade"):
@@ -77,6 +78,7 @@ func _process(delta: float) -> void:
 		return
 
 	if Input.is_action_just_pressed("pause"):
+		Sfx.play("pause", 0.0)
 		get_tree().paused = true
 		_center_label.text = "PAUSED\n\nPAUSE: RESUME\nGRENADE: RESTART FROM CHECKPOINT\nJUMP: QUIT TO TITLE"
 		_message_time = 0.0

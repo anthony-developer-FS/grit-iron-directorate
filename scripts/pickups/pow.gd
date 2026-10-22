@@ -77,6 +77,7 @@ func _on_body_entered(body: Node) -> void:
 	_rescuer = player
 	_set_state(State.SALUTING)
 	Game.rescue_pow()
+	Sfx.play("pow_freed", 0.0)
 	Game.show_message("THANK YOU! I'LL COVER YOU!", 1.2)
 
 

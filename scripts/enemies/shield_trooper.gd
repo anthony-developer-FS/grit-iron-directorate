@@ -37,6 +37,7 @@ func blocks_hit(hit_position: Vector2) -> bool:
 	var below_top := hit_position.y > global_position.y - 27.0
 	if from_front and below_top:
 		_ping = 0.06
+		Sfx.play("ping")
 		queue_redraw()
 		return true
 	return false

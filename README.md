@@ -15,7 +15,7 @@ A Metal Slug style run-and-gun shooter, built in Godot 4. This is Game 1 of the 
 | 1 | Design doc | Done |
 | 2 | Playable prototype with placeholder art | Done |
 | 3 | Full Mission 1 in gray-box art, with the boss | Done |
-| 4 | Final art, sound, menus and desktop builds | In progress: art done |
+| 4 | Final art, sound, menus and desktop builds | In progress: art and sound done |
 
 ## Mission 1: Operation Breakwater
 
@@ -58,6 +58,8 @@ Weapons drop as the gun itself. A special weapon lasts until its ammo runs out o
 ```
 project.godot             Engine settings (320x180 pixel-perfect, integer scaling)
 scripts/autoload/game.gd  Global state: score, lives, difficulty, checkpoint, stats, input bindings
+scripts/autoload/sfx.gd   Sound effects: Sfx.play("name")
+scripts/autoload/music.gd Music tracks with fades: Music.play("mission")
 scripts/player/           Grit: movement, parachute, aiming, 5 weapons, knife, grenades, health
 scripts/enemies/          Rifleman, grenadier, shield trooper, mortar crew, MG nest, half-track
 scripts/bosses/           Seewall battery boss and its destructible parts
@@ -70,6 +72,8 @@ scripts/ui/               Title screen, HUD, pause, game over and results screen
 scenes/levels/mission1.tscn  Operation Breakwater
 assets/sprites/           Generated sprite sheets, tiles and backdrops (do not edit by hand)
 tools/art/                Python scripts that draw all the pixel art
+assets/sound/             Generated sound effects (WAV) and music (Ogg)
+tools/sound/              Python synthesizer for the sound effects and music
 tests/                    End-to-end mission test and screenshot tour
 ```
 
@@ -93,6 +97,16 @@ That rewrites everything in `assets/sprites/`. Open the project in Godot afterwa
 | `world.py` | Ground surfaces, props, storm sky, far cliffs and fleet, bunker walls |
 | `fx.py` | Explosion animation |
 
+
+## Sound
+
+Every sound effect and both music loops are synthesized by Python scripts in `tools/sound/` (needs numpy, plus ffmpeg for the music). Rebuild with:
+
+```
+python3 tools/sound/build.py
+```
+
+`sfx.py` holds the effects (gunshots, explosions, pickups, the boss's cannon and so on). `music.py` holds the two loops as note lists: the mission march, "Breakwater" (D minor, 132 bpm), and the boss theme, "Seewall" (E minor, 152 bpm). Music and effects have their own buses (`Music`, `SFX`) feeding a limiter on `Master`, ready for volume sliders in the options menu. Headless runs skip audio.
 
 ## Tests
 

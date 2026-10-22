@@ -14,15 +14,21 @@ var _time := 0.0
 func _ready() -> void:
 	get_tree().paused = false
 	_selected = 0 if Game.difficulty == Game.Difficulty.EASY else 1
+	Music.play("mission")
 
 
 func _process(delta: float) -> void:
 	_time += delta
 	if Input.is_action_just_pressed("aim_up") or Input.is_action_just_pressed("move_left"):
+		if _selected != 0:
+			Sfx.play("menu_move", 0.0)
 		_selected = 0
 	elif Input.is_action_just_pressed("crouch") or Input.is_action_just_pressed("move_right"):
+		if _selected != 1:
+			Sfx.play("menu_move", 0.0)
 		_selected = 1
 	elif Input.is_action_just_pressed("shoot") or Input.is_action_just_pressed("jump"):
+		Sfx.play("menu_select", 0.0)
 		Game.difficulty = Game.Difficulty.EASY if _selected == 0 else Game.Difficulty.HARD
 		Game.start_mission()
 		get_tree().change_scene_to_file(MISSION_SCENE)

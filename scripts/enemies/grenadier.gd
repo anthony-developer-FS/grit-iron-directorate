@@ -35,6 +35,7 @@ func _think(delta: float, player: Player) -> void:
 
 
 func _throw(player: Player) -> void:
+	Sfx.play("grenade_throw")
 	var grenade := GrenadeScene.instantiate() as Grenade
 	grenade.target_group = &"player"
 	var start := global_position + Vector2(facing * 4, -26)

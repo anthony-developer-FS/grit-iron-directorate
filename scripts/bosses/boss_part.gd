@@ -74,6 +74,7 @@ func take_damage(amount: int) -> void:
 		explosion.radius = 22.0
 		explosion.hurts_enemies = false
 		get_parent().add_child.call_deferred(explosion)
+		Sfx.play("explosion_big")
 		destroyed.emit()
 	queue_redraw()
 

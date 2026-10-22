@@ -32,6 +32,7 @@ func _physics_process(delta: float) -> void:
 				_wait += delta
 				if _wait > 0.6:
 					_state = 1
+					Sfx.play("elevator", 0.0)
 			else:
 				_wait = 0.0
 		1:
