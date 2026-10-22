@@ -49,12 +49,33 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	var from := global_position
 	position += velocity * delta
+	_sweep(from, global_position)
 	_age += delta
 	if _age > lifetime:
 		queue_free()
 	elif style == Style.FLAME:
 		queue_redraw()
+
+
+## Checks the path flown this frame for anything solid. The Area2D's body_entered signal still
+## catches moving bodies (troops, vehicles), even point blank, but area overlaps never report
+## static bodies (walls, MG nests, boss parts), so those need this ray. It also stops fast shots
+## skipping past thin targets between frames.
+func _sweep(from: Vector2, to: Vector2) -> void:
+	var space := get_world_2d().direct_space_state
+	var query := PhysicsRayQueryParameters2D.create(from, to, collision_mask)
+	# Piercing shots can pass through several targets in one frame.
+	for i in 4:
+		query.exclude = _already_hit.map(func(body: Node) -> RID: return body.get_rid())
+		var hit := space.intersect_ray(query)
+		if hit.is_empty():
+			return
+		global_position = hit["position"] if not pierce else global_position
+		_on_body_entered(hit["collider"])
+		if is_queued_for_deletion() or not hit["collider"] in _already_hit:
+			return
 
 
 func _on_body_entered(body: Node) -> void:

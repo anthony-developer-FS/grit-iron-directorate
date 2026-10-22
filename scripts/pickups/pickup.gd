@@ -71,18 +71,33 @@ const PALETTE := {
 	"Y": Color("d8b040"), "B": Color("3d2a18"),
 }
 
+## Supply drops float down under a small parachute from this far above where they land.
+const PARACHUTE_HEIGHT := 140.0
+const PARACHUTE_SPEED := 40.0
+
+## Set before adding to the tree to make the pickup drift down onto its position.
+var parachute := false
+
 var _base_y := 0.0
 var _time := 0.0
+var _falling := false
 
 
 func _ready() -> void:
 	_base_y = position.y
 	body_entered.connect(_on_body_entered)
+	if parachute:
+		_falling = true
+		position.y = _base_y - PARACHUTE_HEIGHT
 
 
 func _process(delta: float) -> void:
 	_time += delta
-	position.y = _base_y + roundf(sin(_time * 4.0) * 1.5)
+	if _falling:
+		position.y = minf(position.y + PARACHUTE_SPEED * delta, _base_y)
+		_falling = position.y < _base_y
+	else:
+		position.y = _base_y + roundf(sin(_time * 4.0) * 1.5)
 	queue_redraw()
 
 
@@ -107,6 +122,8 @@ func _draw() -> void:
 	var rows: Array = SPRITES[kind]
 	var width: int = rows[0].length()
 	var origin := Vector2(-width / 2, -rows.size() - 2)
+	if _falling:
+		_draw_parachute(origin.y)
 	# Small glint so pickups stand out from the scenery.
 	if int(_time * 3.0) % 3 == 0:
 		draw_rect(Rect2(origin + Vector2(width - 3, -2), Vector2(1, 1)), Color.WHITE)
@@ -116,3 +133,14 @@ func _draw() -> void:
 			var key := row[x]
 			if key != ".":
 				draw_rect(Rect2(origin + Vector2(x, y), Vector2.ONE), PALETTE[key])
+
+
+func _draw_parachute(top: float) -> void:
+	var canopy := Vector2(0, top - 22)
+	draw_line(Vector2(-6, top), canopy + Vector2(-10, 2), Color("d8d0b8"))
+	draw_line(Vector2(6, top), canopy + Vector2(10, 2), Color("d8d0b8"))
+	var dome := PackedVector2Array()
+	for i in 9:
+		dome.append(canopy + Vector2.from_angle(PI + PI * i / 8.0) * Vector2(12, 9))
+	draw_colored_polygon(dome, Color("c8c0a0"))
+	draw_rect(Rect2(canopy + Vector2(-12, -1), Vector2(24, 2)), Color("8a826a"))

@@ -32,7 +32,16 @@ func _physics_process(delta: float) -> void:
 	if target:
 		var wanted := (target.global_position + Vector2(0, -12) - global_position).angle()
 		direction = Vector2.from_angle(rotate_toward(direction.angle(), wanted, TURN_RATE * delta))
+	var from := global_position
 	position += direction * _speed * delta
+	# body_entered catches troops and vehicles, but area overlaps never report static bodies
+	# (walls, MG nests, boss parts), so check the path flown this frame with a ray too.
+	var query := PhysicsRayQueryParameters2D.create(from, global_position, collision_mask)
+	var hit := get_world_2d().direct_space_state.intersect_ray(query)
+	if not hit.is_empty():
+		global_position = hit["position"]
+		_explode()
+		return
 	rotation = direction.angle()
 	if _age > LIFETIME:
 		_explode()

@@ -1,7 +1,8 @@
 class_name BossPart
 extends StaticBody2D
-## A destructible piece of a boss. It soaks up bullets all the time, but only takes damage
-## while `vulnerable` (the boss opens parts up phase by phase).
+## A destructible piece of a boss. It only takes damage, and only stops bullets, while
+## `vulnerable` (the boss opens parts up phase by phase). Parts that aren't open yet let shots
+## pass through to the wall behind, so they can't shield an open part they overlap.
 
 signal destroyed
 
@@ -15,10 +16,12 @@ var health := 40
 var vulnerable := false:
 	set(value):
 		vulnerable = value
-		if value and not is_destroyed():
+		var open := value and not is_destroyed()
+		if open:
 			add_to_group("enemies")
 		else:
 			remove_from_group("enemies")
+		set_deferred("collision_layer", 4 if open else 0)
 		queue_redraw()
 ## 0..1, used by the boss to show a charge-up glow.
 var charge := 0.0:
@@ -37,7 +40,7 @@ func _ready() -> void:
 	shape.shape = rect
 	shape.position = Vector2(size.x / 2.0, -size.y / 2.0)
 	add_child(shape)
-	collision_layer = 4
+	collision_layer = 4 if vulnerable else 0
 	collision_mask = 0
 
 
@@ -58,7 +61,6 @@ func take_damage(amount: int) -> void:
 	_hit_flash = 0.05
 	if health <= 0:
 		vulnerable = false
-		set_deferred("collision_layer", 0)
 		Game.add_score(1000)
 		var explosion := ExplosionScene.instantiate() as Explosion
 		explosion.position = global_position + Vector2(size.x / 2.0, -size.y / 2.0)
