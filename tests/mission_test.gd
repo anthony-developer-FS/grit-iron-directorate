@@ -47,6 +47,7 @@ func _ready() -> void:
 			_seen["supply_drop"] = true)
 	_check_difficulty()
 	_check_volley_spacing()
+	_check_weapon_timer()
 	Game.difficulty = Game.Difficulty.HARD
 	_player.god_mode = true
 	Game.lives = 99
@@ -62,6 +63,20 @@ func _check_difficulty() -> void:
 		_fail("Easy mode: one hit should leave Grit alive with 2 HP")
 	if not _player.is_invulnerable():
 		_fail("Easy mode: no mercy invulnerability after a hit")
+
+
+## Special weapons run out after SPECIAL_WEAPON_TIME even with ammo left, and an ammo box restarts the clock.
+func _check_weapon_timer() -> void:
+	_player.give_weapon("hmg")
+	_player._tick_weapon_timer(_player.SPECIAL_WEAPON_TIME - 1.0)
+	if _player.weapon != "hmg":
+		_fail("special weapon expired before its timer ran out")
+	_player.reload_special()
+	if _player.weapon_time_left < _player.SPECIAL_WEAPON_TIME - 0.01:
+		_fail("ammo box did not reset the special weapon timer")
+	_player._tick_weapon_timer(_player.SPECIAL_WEAPON_TIME + 0.1)
+	if _player.weapon != "pistol":
+		_fail("special weapon still held after its timer ran out")
 
 
 ## Turret volleys must string out so each shot can be jumped on its own: fastest first,
