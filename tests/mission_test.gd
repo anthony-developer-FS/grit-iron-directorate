@@ -6,6 +6,7 @@ extends Node
 ## Exits with code 0 on success, 1 on failure.
 
 const MissionScene := preload("res://scenes/levels/mission1.tscn")
+const BulletScene := preload("res://scenes/projectiles/bullet.tscn")
 const TIME_LIMIT := 400.0
 ## After this long in the boss arena the test finishes the boss off directly, phase by phase,
 ## since the bot can't climb the planks to reach the high targets.
@@ -41,6 +42,9 @@ func _ready() -> void:
 	_half_track.defeated.connect(func() -> void: _seen["half_track_defeated"] = true)
 	Game.mission_completed.connect(func() -> void: _seen["mission_completed"] = true)
 	Game.checkpoint_reached.connect(func() -> void: _seen["checkpoint"] = true)
+	Game.message_requested.connect(func(text: String, _duration: float) -> void:
+		if text == "SUPPLY DROP!":
+			_seen["supply_drop"] = true)
 	_check_difficulty()
 	_check_volley_spacing()
 	Game.difficulty = Game.Difficulty.HARD
@@ -121,13 +125,17 @@ func _drive_bot(x: float) -> void:
 
 
 func _finish_boss() -> void:
-	# One heavy hit every half second, so each phase gets to run its attacks.
+	# One heavy shot every half second, so each phase gets to run its attacks. Real bullets, so a
+	# part that bullets can't reach (or that another part shields) fails the boss phases.
 	if int(_boss_time * 2.0) == int((_boss_time - get_physics_process_delta_time()) * 2.0):
 		return
 	for part_name in ["TurretLow", "TurretHigh", "Breech", "Core"]:
 		var part := _boss.get_node(part_name) as BossPart
 		if part.vulnerable and not part.is_destroyed():
-			part.take_damage(10)
+			var center := part.global_position + Vector2(part.size.x / 2.0, -part.size.y / 2.0)
+			var bullet := BulletScene.instantiate() as Bullet
+			bullet.setup(Bullet.Team.PLAYER, center - Vector2(40, 0), Vector2(320, 0), 10)
+			_level.add_child(bullet)
 			return
 
 
@@ -161,6 +169,7 @@ func _finish() -> void:
 		"boss_phase_4": "boss was never destroyed",
 		"mission_completed": "mission never completed",
 		"pow_fighting": "no rescued POW fought alongside Grit",
+		"supply_drop": "no supply drop came down",
 	}
 	for key in expectations:
 		if not _seen.has(key):

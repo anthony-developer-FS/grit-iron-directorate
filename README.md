@@ -29,7 +29,7 @@ A Metal Slug style run-and-gun shooter, built in Godot 4. This is Game 1 of the 
 
 Pick **Easy** (3 hits per life) or **Hard** (one hit, arcade rules) on the title screen.
 
-Weapons drop as the gun itself. **Ammo boxes** refill Grit's special weapon, or bring back the last one he had if he's down to the pistol. Freed **POWs** drop a reward, then grab a rifle and fight beside Grit for up to 10 seconds.
+Weapons drop as the gun itself. **Ammo boxes** refill Grit's special weapon, or bring back the last one he had if he's down to the pistol. Every 60 to 90 seconds a **supply drop** parachutes a random special weapon in just ahead of Grit (within 40 seconds in arena fights), with a bomb crate alongside when he has 4 grenades or fewer. Every gun, the pistol included, can take down the MG nests and the Seewall battery's turrets, cannon and core. Freed **POWs** drop a reward, then grab a rifle and fight beside Grit for up to 10 seconds.
 
 ![Seewall battery, final phase](docs/screenshots/boss_core.png)
 
