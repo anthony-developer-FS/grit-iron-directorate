@@ -43,7 +43,7 @@ func _run() -> void:
 
 	# Main list: START MISSION, OPTIONS, QUIT. Down once and pick opens the options.
 	await _tap("crouch")
-	await _tap("shoot")
+	await _tap("menu_accept")
 	_expect(menu.title == "OPTIONS", "options did not open from the title screen")
 	await _shot("02_options")
 	var music := Settings.music_level
@@ -56,23 +56,23 @@ func _run() -> void:
 	# Down to CONTROLS and open the page.
 	for i in 3:
 		await _tap("crouch")
-	await _tap("shoot")
+	await _tap("menu_accept")
 	_expect(not menu.page.is_empty(), "controls page did not open")
 	await _shot("03_controls")
-	await _tap("grenade")
+	await _tap("menu_back")
 	_expect(menu.page.is_empty(), "controls page did not close")
-	# Grenade backs out to the main list with OPTIONS still selected.
-	await _tap("grenade")
-	_expect(menu.title == "" and menu.selected == 1, "Grenade did not go back to the main list")
+	# Escape backs out to the main list with OPTIONS still selected.
+	await _tap("menu_back")
+	_expect(menu.title == "" and menu.selected == 1, "Escape did not go back to the main list")
 
 	# Start on Easy: up to START MISSION, pick, then pick EASY.
 	await _tap("aim_up")
-	await _tap("shoot")
+	await _tap("menu_accept")
 	_expect(menu.title == "CHOOSE DIFFICULTY", "difficulty list did not open")
 	if Game.difficulty != Game.Difficulty.EASY:
 		await _tap("aim_up")
 	await _shot("04_difficulty")
-	await _tap("shoot")
+	await _tap("menu_accept")
 	await _frames(30)
 	var level := get_tree().current_scene
 	_expect(level != null and level.name == "Mission1", "Start did not load the mission")
@@ -84,8 +84,12 @@ func _run() -> void:
 	var pause_menu := level.get_node("HUD/PauseMenu") as Menu
 	_expect(get_tree().paused and pause_menu.visible, "pause did not open the pause menu")
 	await _shot("05_pause")
-	await _tap("shoot")
+	await _tap("menu_accept")
 	_expect(not get_tree().paused and not pause_menu.visible, "RESUME did not unpause the game")
+	# Escape opens the pause menu and, pressed again, closes it.
+	await _tap("pause")
+	await _tap("menu_back")
+	_expect(not get_tree().paused and not pause_menu.visible, "Escape did not close the pause menu")
 
 
 func _expect(condition: bool, message: String) -> void:

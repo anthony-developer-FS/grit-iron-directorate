@@ -27,7 +27,7 @@ A Metal Slug style run-and-gun shooter, built in Godot 4. This is Game 1 of the 
 6. **Bunker interior:** another MG nest, a POW on a high shelf, and a freight elevator up the cliff while troops drop in.
 7. **Cliff top and boss:** checkpoint, then the Seewall battery in three phases: flak turrets, the main cannon (get up on the planks), and the exposed generator core. Every boss volley fires its fastest shot first and slowest last, so the shots arrive one at a time and each can be jumped.
 
-Pick **Start Mission**, then **Easy** (3 hits per life) or **Hard** (one hit, arcade rules). **Options** sets the music and effects volume, fullscreen, and lists the controls; settings are saved to `user://settings.cfg`. In menus, Up/Down chooses, Left/Right changes a setting, Shoot picks and Grenade goes back.
+Pick **Start Mission**, then **Easy** (3 hits per life) or **Hard** (one hit, arcade rules). **Options** sets the music and effects volume, fullscreen, and lists the controls; settings are saved to `user://settings.cfg`. In menus, Up/Down chooses, Left/Right changes a setting, **Enter** (gamepad A) picks and **Escape** (gamepad B) goes back.
 
 ![Title screen](docs/screenshots/title.png)
 
@@ -77,6 +77,7 @@ A few things to know before shipping:
 | Shoot (knife when an enemy is close) | X or J | X / Square |
 | Grenade | C or K | B / Circle |
 | Pause menu (resume, options, restart from checkpoint, quit to title) | Esc or P | Start |
+| Menus: pick / back | Enter / Esc | A / B |
 | Fullscreen | F11 | |
 
 ## Project layout
@@ -153,7 +154,9 @@ A second test drives the menus: the options (volume changes and saves), the cont
 godot --headless --fixed-fps 60 res://tests/menu_test.tscn
 ```
 
-GitHub runs both on every push and pull request. Add `-- /path/to/output` (with a display) to the menu test to save a screenshot of each screen.
+A third, `res://tests/pow_test.tscn`, checks that a freed POW jumps over an obstacle to keep up with Grit.
+
+GitHub runs all three on every push and pull request. Add `-- /path/to/output` (with a display) to the menu test to save a screenshot of each screen.
 
 To capture a screenshot at each beat (needs a display):
 

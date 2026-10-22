@@ -13,13 +13,15 @@ const CONTROLS: PackedStringArray = [
 	"GRENADE\tC, K\tB",
 	"PAUSE\tESC, P\tSTART",
 	"FULLSCREEN\tF11\t",
+	"MENU PICK\tENTER\tA",
+	"MENU BACK\tESC\tB",
 	"",
 	"DOWN + JUMP DROPS THROUGH PLANKS",
 	"SHOOT UP CLOSE TO USE THE KNIFE",
 ]
 
 
-## Shows the options on `menu`; picking BACK (or pressing Grenade) calls `on_back`.
+## Shows the options on `menu`; picking BACK (or pressing Escape) calls `on_back`.
 static func open(menu: Menu, on_back: Callable) -> void:
 	var items: Array[Dictionary] = [
 		{
