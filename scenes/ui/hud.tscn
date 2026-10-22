@@ -1,23 +1,18 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/ui/menu.gd" id="2_menu"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_hud"]
 font_size = 8
-outline_size = 2
-outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_center"]
-font_size = 10
+font_size = 16
 font_color = Color(1, 0.88, 0.4, 1)
-outline_size = 3
-outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_results"]
 font_size = 8
 font_color = Color(0.95, 0.92, 0.8, 1)
-outline_size = 2
-outline_color = Color(0, 0, 0, 1)
 
 [node name="HUD" type="CanvasLayer"]
 layer = 10
@@ -119,3 +114,7 @@ offset_bottom = 164.0
 label_settings = SubResource("LabelSettings_results")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="PauseMenu" type="Node2D" parent="."]
+visible = false
+script = ExtResource("2_menu")

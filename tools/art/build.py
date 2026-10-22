@@ -12,8 +12,10 @@ import pow as pow_art  # noqa: E402
 import world  # noqa: E402
 import boss  # noqa: E402
 import fx  # noqa: E402
+import font  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "sprites")
+FONTS = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "fonts")
 
 
 def main():
@@ -31,6 +33,10 @@ def main():
     outputs.update(world.build())
     outputs.update(boss.build())
     outputs.update(fx.build())
+    outputs["logo.png"] = font.logo("VANGUARD OPS", 3, "ffe066", "e0661c")
+    os.makedirs(FONTS, exist_ok=True)
+    font.build(os.path.join(FONTS, "pixel.fnt"), "pixel.png").save(os.path.join(FONTS, "pixel.png"))
+    print("wrote pixel.fnt and pixel.png")
     for name, image in outputs.items():
         image.save(os.path.join(OUT, name))
         print("wrote", name, image.size)

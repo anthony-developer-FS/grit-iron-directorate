@@ -1,57 +1,63 @@
 extends Node2D
-## Title screen: pick Easy or Hard and start Mission 1.
+## Title screen: start Mission 1 on Easy or Hard, change the options, or quit.
 
 const MISSION_SCENE := "res://scenes/levels/mission1.tscn"
-const OPTIONS := [
-	["EASY", "3 HITS PER LIFE"],
-	["HARD", "ONE HIT AND YOU'RE DOWN (ARCADE RULES)"],
-]
+const SkyTexture := preload("res://assets/sprites/sky.png")
+const FarLayer := preload("res://assets/sprites/far_layer.png")
+const Logo := preload("res://assets/sprites/logo.png")
+## How fast the far cliffs and fleet drift behind the logo, in pixels per second.
+const DRIFT := 6.0
 
-var _selected := 1
 var _time := 0.0
+
+@onready var _menu: Menu = $Menu
 
 
 func _ready() -> void:
 	get_tree().paused = false
-	_selected = 0 if Game.difficulty == Game.Difficulty.EASY else 1
 	Music.play("mission")
+	_menu.center_y = 128.0
+	_open_main()
+
+
+func _open_main(select := 0) -> void:
+	var items: Array[Dictionary] = [
+		{"label": "START MISSION", "pick": _open_difficulty},
+		{"label": "OPTIONS", "pick": func() -> void: Options.open(_menu, _open_main.bind(1))},
+		{"label": "QUIT", "pick": func() -> void: get_tree().quit()},
+	]
+	_menu.show_items("", items, select)
+
+
+func _open_difficulty() -> void:
+	var items: Array[Dictionary] = [
+		{"label": "EASY", "hint": "3 HITS PER LIFE", "pick": _start.bind(Game.Difficulty.EASY)},
+		{"label": "HARD", "hint": "ONE HIT AND YOU'RE DOWN: ARCADE RULES", "pick": _start.bind(Game.Difficulty.HARD)},
+		{"label": "BACK", "pick": _open_main},
+	]
+	_menu.show_items("CHOOSE DIFFICULTY", items, 0 if Game.difficulty == Game.Difficulty.EASY else 1, _open_main)
+
+
+func _start(difficulty: Game.Difficulty) -> void:
+	Game.difficulty = difficulty
+	Game.start_mission()
+	get_tree().change_scene_to_file(MISSION_SCENE)
 
 
 func _process(delta: float) -> void:
 	_time += delta
-	if Input.is_action_just_pressed("aim_up") or Input.is_action_just_pressed("move_left"):
-		if _selected != 0:
-			Sfx.play("menu_move", 0.0)
-		_selected = 0
-	elif Input.is_action_just_pressed("crouch") or Input.is_action_just_pressed("move_right"):
-		if _selected != 1:
-			Sfx.play("menu_move", 0.0)
-		_selected = 1
-	elif Input.is_action_just_pressed("shoot") or Input.is_action_just_pressed("jump"):
-		Sfx.play("menu_select", 0.0)
-		Game.difficulty = Game.Difficulty.EASY if _selected == 0 else Game.Difficulty.HARD
-		Game.start_mission()
-		get_tree().change_scene_to_file(MISSION_SCENE)
-		return
 	queue_redraw()
 
 
 func _draw() -> void:
 	var font := ThemeDB.fallback_font
-	draw_rect(Rect2(0, 0, 320, 180), Color("161d27"))
-	draw_colored_polygon(PackedVector2Array([Vector2(0, 150), Vector2(60, 118), Vector2(120, 132), Vector2(190, 104), Vector2(260, 126), Vector2(320, 112), Vector2(320, 180), Vector2(0, 180)]), Color("232e3a"))
-	draw_rect(Rect2(0, 160, 320, 20), Color("2c2620"))
-	draw_string(font, Vector2(0, 46), "VANGUARD OPS", HORIZONTAL_ALIGNMENT_CENTER, 320, 28, Color("ffe066"))
-	draw_string(font, Vector2(0, 64), "KESSELSTADT RUN", HORIZONTAL_ALIGNMENT_CENTER, 320, 12, Color("ff6a4a"))
-	for i in OPTIONS.size():
-		var y := 96.0 + i * 22.0
-		var chosen := i == _selected
-		var color := Color("ffffff") if chosen else Color("7a8494")
-		var label: String = OPTIONS[i][0]
-		if chosen and int(_time * 3.0) % 2 == 0:
-			label = "> " + label + " <"
-		draw_string(font, Vector2(0, y), label, HORIZONTAL_ALIGNMENT_CENTER, 320, 12, color)
-		draw_string(font, Vector2(0, y + 9), OPTIONS[i][1], HORIZONTAL_ALIGNMENT_CENTER, 320, 7, color.darkened(0.2))
-	if int(_time * 2.0) % 2 == 0:
-		draw_string(font, Vector2(0, 150), "PRESS SHOOT TO START", HORIZONTAL_ALIGNMENT_CENTER, 320, 8, Color("ffffff"))
-	draw_string(font, Vector2(0, 172), "MOVE: ARROWS   JUMP: Z   SHOOT: X   GRENADE: C", HORIZONTAL_ALIGNMENT_CENTER, 320, 7, Color("9aa4b4"))
+	draw_texture(SkyTexture, Vector2.ZERO)
+	var drift := fmod(_time * DRIFT, 320.0)
+	draw_texture(FarLayer, Vector2(-drift, -20))
+	draw_texture(FarLayer, Vector2(320 - drift, -20))
+	draw_rect(Rect2(0, 0, 320, 180), Color(0.03, 0.04, 0.07, 0.45))
+	draw_texture(Logo, Vector2(roundf((320 - Logo.get_width()) / 2.0), 18))
+	draw_string(font, Vector2(0, 66), "KESSELSTADT RUN", HORIZONTAL_ALIGNMENT_CENTER, 320, 16, Color("ff6a4a"))
+	if _menu.title == "":
+		draw_string(font, Vector2(0, 78), "MISSION 1: OPERATION BREAKWATER", HORIZONTAL_ALIGNMENT_CENTER, 320, 8, Color("c8d0dc"))
+	draw_string(font, Vector2(0, 174), "SHOOT: SELECT    GRENADE: BACK", HORIZONTAL_ALIGNMENT_CENTER, 320, 8, Color("7a8494"))
