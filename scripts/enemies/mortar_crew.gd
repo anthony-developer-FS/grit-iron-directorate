@@ -5,6 +5,7 @@ extends Enemy
 
 const RANGE := 280.0
 const StrikeScene := preload("res://scenes/fx/artillery_strike.tscn")
+const FRAMES := ["idle", "fire", "dead0", "dead1"]
 
 var _timer := 1.5
 var _recoil := 0.0
@@ -28,12 +29,6 @@ func _think(delta: float, player: Player) -> void:
 
 func _draw() -> void:
 	if dead:
-		_draw_corpse(Color("7d848c"))
-		return
-	_draw_soldier(Color("7d848c"), true)
-	# Mortar tube on a bipod.
-	var tip := Vector2(facing * 10, -18 - (2 if _recoil > 0.0 else 0))
-	draw_line(Vector2(facing * 6, -2), tip, Color("3a3e44"), 3.0)
-	draw_line(Vector2(facing * 9, -10), Vector2(facing * 12, 0), Color("3a3e44"), 1.0)
-	if _recoil > 0.15:
-		draw_circle(tip, 3.0, Color("fff2a8"))
+		_draw_frame(3, _death_frame(FRAMES))
+	else:
+		_draw_frame(3, FRAMES.find("fire" if _recoil > 0.1 else "idle"))

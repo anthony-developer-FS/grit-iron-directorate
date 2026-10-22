@@ -1,8 +1,10 @@
 class_name Explosion
 extends Node2D
-## Splash damage plus a placeholder fireball. Damages enemies and/or Grit within `radius`.
+## Splash damage plus a pixel-art fireball (tools/art/fx.py). Damages enemies and/or Grit within `radius`.
 
-const DURATION := 0.4
+const DURATION := 0.55
+const FRAME_COUNT := 7
+const Sheet := preload("res://assets/sprites/explosion.png")
 
 @export var radius := 24.0
 @export var damage := 5
@@ -38,9 +40,9 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	var t := _time / DURATION
-	draw_circle(Vector2.ZERO, radius * (0.4 + 0.6 * t), Color(1.0, 0.45, 0.1, 1.0 - t))
-	draw_circle(Vector2.ZERO, radius * 0.55 * (1.0 - t), Color(1.0, 0.95, 0.6, 1.0 - t))
-	for i in 6:
-		var angle := TAU * i / 6.0 + t
-		draw_circle(Vector2.from_angle(angle) * radius * t, 3.0 * (1.0 - t), Color(0.3, 0.3, 0.3, 1.0 - t))
+	var frame := mini(int(_time / DURATION * FRAME_COUNT), FRAME_COUNT - 1)
+	# The sprite's fireball has a 22 px radius at full size; scale in half steps to keep it crisp.
+	var size := maxf(snappedf(radius / 22.0, 0.5), 0.5)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(size, size))
+	draw_texture_rect_region(Sheet, Rect2(-24, -24, 48, 48), Rect2(frame * 48, 0, 48, 48))
+	draw_set_transform(Vector2.ZERO)

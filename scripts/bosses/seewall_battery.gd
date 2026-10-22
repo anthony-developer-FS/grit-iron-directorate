@@ -16,6 +16,10 @@ const BulletScene := preload("res://scenes/projectiles/bullet.tscn")
 const RiflemanScene := preload("res://scenes/enemies/rifleman.tscn")
 const StrikeScene := preload("res://scenes/fx/artillery_strike.tscn")
 const ExplosionScene := preload("res://scenes/fx/explosion.tscn")
+## From tools/art/boss.py: the wall with its tower (dim, then lit once the fight starts) and the
+## main cannon barrel.
+const WallSheet := preload("res://assets/sprites/boss_wall.png")
+const CannonTexture := preload("res://assets/sprites/boss_cannon.png")
 
 ## Turret volley: one shot per speed, all aimed at Grit, launched together. From 150 px away
 ## they arrive 1.0, 2.2 and 3.4 seconds later. The 1.2 s gaps leave time to land from one
@@ -241,23 +245,11 @@ func _call_strike(local_x: float, warning: float) -> void:
 func _draw() -> void:
 	if phase == Phase.DESTROYED and _death_timer <= 0.0:
 		return
-	# Fortress wall with rivets, the command tower and the main cannon.
-	draw_rect(Rect2(0, -120, 100, 120), Color("4a4e52"))
-	for y in range(-112, 0, 16):
-		for x in range(6, 100, 16):
-			draw_rect(Rect2(x, y, 2, 2), Color("6a6e72"))
-	draw_rect(Rect2(0, -124, 100, 4), Color("2e3134"))
-	draw_rect(Rect2(50, -170, 36, 46), Color("3e4246"))
-	draw_rect(Rect2(56, -162, 24, 8), Color("ffd27a") if phase != Phase.DORMANT else Color("6a5a3a"))
-	draw_rect(Rect2(46, -174, 44, 4), Color("2e3134"))
-	draw_rect(Rect2(64, -190, 2, 16), Color("2e3134"))
-	draw_colored_polygon(PackedVector2Array([Vector2(66, -190), Vector2(80, -186), Vector2(66, -182)]), Color("b32424"))
+	var lit := 1 if phase != Phase.DORMANT else 0
+	draw_texture_rect_region(WallSheet, Rect2(0, -195, 104, 196), Rect2(lit * 104, 0, 104, 196))
 	if not _breech.is_destroyed():
-		draw_rect(Rect2(-48, -14, 46, 10), Color("3a3e44"))
-		draw_rect(Rect2(-52, -16, 6, 14), Color("2b2b2b"))
+		draw_texture(CannonTexture, Vector2(-54, -18))
 		if _charging:
 			draw_circle(Vector2(-52, -9), 3.0 + 5.0 * _breech.charge, Color(1.0, 0.7, 0.2, 0.5 + 0.5 * _breech.charge))
-	# Hatch the riflemen come out of.
-	draw_rect(Rect2(4, -30, 14, 30), Color("2a2c2e"))
 	if phase in [Phase.TURRETS, Phase.CANNON, Phase.CORE]:
 		queue_redraw()

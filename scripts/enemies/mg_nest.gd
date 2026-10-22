@@ -10,6 +10,8 @@ const BURST_INTERVAL := 0.09
 const BULLET_SPEED := 130.0
 const BulletScene := preload("res://scenes/projectiles/bullet.tscn")
 const ExplosionScene := preload("res://scenes/fx/explosion.tscn")
+## 40x32 frames from tools/art/vehicles.py: idle, firing, destroyed, hit flash. Faces right.
+const Sheet := preload("res://assets/sprites/mg_nest.png")
 
 @export var max_health := 15
 @export var score_value := 500
@@ -75,17 +77,18 @@ func take_damage(amount: int) -> void:
 
 
 func _draw() -> void:
+	var frame := 0
 	if dead:
-		draw_rect(Rect2(-16, -10, 32, 10), Color("3a3c3e"))
-		draw_rect(Rect2(-10, -14, 8, 4), Color("2a2c2e"))
+		frame = 2
+	elif _hit_flash > 0.0:
+		frame = 3
+	elif _shots_left > 0 and int(_timer * 60.0) % 2 == 0:
+		frame = 1
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1))
+	draw_texture_rect_region(Sheet, Rect2(-20, -29, 40, 32), Rect2(frame * 40, 0, 40, 32))
+	draw_set_transform(Vector2.ZERO)
+	if dead:
 		return
-	var concrete := Color.WHITE if _hit_flash > 0.0 else Color("8a8e90")
-	draw_rect(Rect2(-16, -26, 32, 26), concrete)
-	draw_rect(Rect2(-16, -26, 32, 3), Color("a8acae"))
-	draw_rect(Rect2(-12, -16, 24, 6), Color("1a1c1e"))
-	draw_line(Vector2(facing * 4, -13), Vector2(facing * 20, -12), Color("2b2b2b"), 2.0)
-	if _shots_left > 0 and int(_timer * 60.0) % 2 == 0:
-		draw_circle(Vector2(facing * 21, -12), 3.0, Color("fff2a8"))
 	# Health bar so the player can see progress on a tough target.
 	draw_rect(Rect2(-12, -30, 24, 2), Color("3a0d0d"))
 	draw_rect(Rect2(-12, -30, 24.0 * health / max_health, 2), Color("ff4632"))

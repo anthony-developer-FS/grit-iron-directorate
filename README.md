@@ -14,8 +14,8 @@ A Metal Slug style run-and-gun shooter, built in Godot 4. This is Game 1 of the 
 | --- | --- | --- |
 | 1 | Design doc | Done |
 | 2 | Playable prototype with placeholder art | Done |
-| 3 | Full Mission 1 in gray-box art, with the boss | In review |
-| 4 | Final art, sound, menus and desktop builds | Not started |
+| 3 | Full Mission 1 in gray-box art, with the boss | Done |
+| 4 | Final art, sound, menus and desktop builds | In progress: art done |
 
 ## Mission 1: Operation Breakwater
 
@@ -65,13 +65,34 @@ scripts/projectiles/      Bullets (incl. shotgun pellets, flames, flak, cannon s
 scripts/fx/               Explosions, artillery strikes, rain
 scripts/pickups/          Weapon and grenade crates, POW prisoners
 scripts/camera/           Forward-only camera with vertical follow, arena locks and screen shake
-scripts/level/            Gray-box blocks, props, triggers, elevator, checkpoint, mission root
+scripts/level/            Textured blocks, props, triggers, elevator, checkpoint, mission root
 scripts/ui/               Title screen, HUD, pause, game over and results screens
 scenes/levels/mission1.tscn  Operation Breakwater
+assets/sprites/           Generated sprite sheets, tiles and backdrops (do not edit by hand)
+tools/art/                Python scripts that draw all the pixel art
 tests/                    End-to-end mission test and screenshot tour
 ```
 
-All art is still drawn in code (`_draw()` placeholders). Real pixel art replaces it in step 4.
+## Art
+
+All pixel art is drawn by Python scripts in `tools/art/` (needs Pillow). Each sprite is a text grid, one character per pixel, with a palette per character set. Grit, the troopers and the POWs share a leg rig, so new poses are a few numbers. To change any art, edit the script and rebuild:
+
+```
+python3 tools/art/build.py
+```
+
+That rewrites everything in `assets/sprites/`. Open the project in Godot afterwards so it re-imports the changed images.
+
+| Script | Draws |
+| --- | --- |
+| `grit.py` | Grit's body poses, the arm with each weapon at five aim angles, parachute, muzzle flash |
+| `trooper.py` | Rifleman, grenadier, shield trooper, mortar crew (plus white hit-flash copies) |
+| `vehicles.py` | MG nest, half-track |
+| `pow.py` | POW prisoners |
+| `boss.py` | Seewall battery wall, cannon, turrets, breech and core |
+| `world.py` | Ground surfaces, props, storm sky, far cliffs and fleet, bunker walls |
+| `fx.py` | Explosion animation |
+
 
 ## Tests
 

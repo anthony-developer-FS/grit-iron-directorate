@@ -6,6 +6,8 @@ extends Enemy
 const WALK_SPEED := 15.0
 const FIRE_RANGE := 170.0
 const BULLET_SPEED := 110.0
+const FRAMES := ["idle", "walk0", "walk1", "walk2", "walk3", "ping0", "ping1", "ping2", "ping3", "ping4",
+	"dead0", "dead1"]
 
 var _timer := 1.5
 var _ping := 0.0
@@ -42,12 +44,10 @@ func blocks_hit(hit_position: Vector2) -> bool:
 
 func _draw() -> void:
 	if dead:
-		_draw_corpse(Color("5d6166"))
+		_draw_frame(2, _death_frame(FRAMES))
 		return
-	_draw_soldier(Color("5d6166"))
-	var shield_color := Color("dcdcdc") if _ping > 0.0 else Color("7a7f86")
-	draw_rect(Rect2(facing * 7 - 3, -28, 6, 27), shield_color)
-	draw_rect(Rect2(facing * 7 - 3, -28, 6, 27), Color("2e3033"), false, 1.0)
-	draw_rect(Rect2(facing * 7 - 1, -22, 2, 3), Color("1c1c1c"))
-	for y in [-25, -10, -4]:
-		draw_rect(Rect2(facing * 7 - 2, y, 1, 1), Color("b0b4ba"))
+	# The ping frames are the same poses with the shield lit up by a deflected bullet.
+	var pose := 0
+	if absf(velocity.x) > 1.0:
+		pose = 1 + int(_anim_time * 5.0) % 4
+	_draw_frame(2, pose + (5 if _ping > 0.0 else 0))

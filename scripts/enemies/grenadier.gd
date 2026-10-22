@@ -6,14 +6,18 @@ const THROW_RANGE := 200.0
 const WIND_UP := 0.5
 const FLIGHT_TIME := 1.0
 const GrenadeScene := preload("res://scenes/projectiles/grenade.tscn")
+const FRAMES := ["idle", "run0", "run1", "run2", "run3", "run4", "run5", "windup", "throw",
+	"dead0", "dead1"]
 
 var _timer := 1.0
 var _winding_up := false
+var _throw_pose := 0.0
 
 
 func _think(delta: float, player: Player) -> void:
 	velocity.x = 0.0
 	_timer -= delta
+	_throw_pose = maxf(_throw_pose - delta, 0.0)
 	if player == null:
 		_winding_up = false
 		return
@@ -25,6 +29,7 @@ func _think(delta: float, player: Player) -> void:
 		_timer = WIND_UP
 	elif _winding_up and _timer <= 0.0:
 		_winding_up = false
+		_throw_pose = 0.2
 		_timer = randf_range(2.2, 3.0)
 		_throw(player)
 
@@ -42,12 +47,12 @@ func _throw(player: Player) -> void:
 
 func _draw() -> void:
 	if dead:
-		_draw_corpse(Color("6d7a80"))
-		return
-	_draw_soldier(Color("6d7a80"))
-	# Arm raised while winding up a throw.
-	if _winding_up:
-		draw_line(Vector2(-facing * 3, -18), Vector2(-facing * 7, -28), Color("6d7a80"), 2.0)
-		draw_rect(Rect2(-facing * 7 - 2, -32, 4, 4), Color("4a4e54"))
+		_draw_frame(1, _death_frame(FRAMES))
+	elif _winding_up:
+		_draw_frame(1, FRAMES.find("windup"))
+	elif _throw_pose > 0.0:
+		_draw_frame(1, FRAMES.find("throw"))
+	elif absf(velocity.x) > 1.0:
+		_draw_frame(1, _cycle(FRAMES, "run", 6, 8.0))
 	else:
-		draw_rect(Rect2(-facing * 6 - 1, -12, 3, 3), Color("4a4e54"))
+		_draw_frame(1, FRAMES.find("idle"))

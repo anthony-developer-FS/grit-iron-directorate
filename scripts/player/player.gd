@@ -1,6 +1,7 @@
 class_name Player
 extends CharacterBody2D
-## Sgt. "Grit" Calloway. Placeholder art is drawn in _draw() until real sprites arrive.
+## Sgt. "Grit" Calloway. Sprites come from tools/art/grit.py: a body sheet for poses and an
+## arm sheet with each weapon at five aim angles, layered so any pose can aim any way.
 ## The node origin sits at Grit's feet.
 
 const RUN_SPEED := 75.0
@@ -33,6 +34,19 @@ const BulletScene := preload("res://scenes/projectiles/bullet.tscn")
 const GrenadeScene := preload("res://scenes/projectiles/grenade.tscn")
 const RocketScene := preload("res://scenes/projectiles/rocket.tscn")
 
+const BodySheet := preload("res://assets/sprites/grit_body.png")
+const ArmSheet := preload("res://assets/sprites/grit_arms.png")
+const ParachuteTexture := preload("res://assets/sprites/parachute.png")
+const MuzzleFlashTexture := preload("res://assets/sprites/muzzle_flash.png")
+## Must match BODY_FRAMES, WEAPON_ARMS, ARM_ANGLES and MUZZLE in tools/art/grit.py.
+const BODY_FRAMES := ["idle0", "idle1", "run0", "run1", "run2", "run3", "run4", "run5",
+	"jump", "fall", "crouch0", "crouch1", "hang", "dead0", "dead1", "dead2"]
+const ARM_ROWS := ["pistol", "hmg", "rocket", "shotgun", "flame", "knife"]
+const ARM_ANGLES := [-90.0, -45.0, 0.0, 45.0, 90.0]
+const MUZZLE_LENGTH := {"pistol": 12.0, "hmg": 20.0, "rocket": 18.0, "shotgun": 17.0, "flame": 19.0}
+## Run frames that lift the upper body a pixel.
+const RUN_LIFT := [0, 1, 1, 0, 1, 1]
+
 ## Falling below this y counts as falling into a pit.
 @export var fall_death_y := 260.0
 ## Start the level drifting down under a parachute.
@@ -62,6 +76,8 @@ var _invulnerable := 0.0
 var _knife_flash := 0.0
 var _muzzle_flash := 0.0
 var _last_safe_position := Vector2.ZERO
+var _anim_time := 0.0
+var _dead_time := 0.0
 
 @onready var _standing_shape: CollisionShape2D = $StandingShape
 @onready var _crouch_shape: CollisionShape2D = $CrouchShape
@@ -77,7 +93,10 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_anim_time += delta
 	if dead:
+		_dead_time += delta
+		queue_redraw()
 		return
 	_fire_cooldown = maxf(_fire_cooldown - delta, 0.0)
 	_invulnerable = maxf(_invulnerable - delta, 0.0)
@@ -178,6 +197,7 @@ func kill(ignore_invulnerability := false) -> void:
 	if _invulnerable > 0.0 and not ignore_invulnerability:
 		return
 	dead = true
+	_dead_time = 0.0
 	parachuting = false
 	velocity = Vector2.ZERO
 	_set_crouching(false)
@@ -258,11 +278,11 @@ func _update_aim(delta: float) -> void:
 
 
 func _shoulder_offset() -> Vector2:
-	return Vector2(0, -9 if crouching else -19)
+	return Vector2(3 * facing, -9 if crouching else -16)
 
 
 func _muzzle_position() -> Vector2:
-	return global_position + _shoulder_offset() + Vector2.from_angle(aim_angle) * 10.0
+	return global_position + _shoulder_offset() + Vector2.from_angle(aim_angle) * float(MUZZLE_LENGTH[weapon])
 
 
 func _handle_shooting() -> void:
@@ -334,38 +354,61 @@ func _throw_grenade() -> void:
 
 
 func _draw() -> void:
-	if dead:
-		draw_rect(Rect2(-12, -6, 24, 6), Color("6b7a3a"))
-		draw_rect(Rect2(8 * facing - 3, -7, 6, 6), Color("e0b48a"))
-		return
 	# Blink while invulnerable after a hit or respawn.
-	if _invulnerable > 0.0 and int(_invulnerable * 12.0) % 2 == 0:
+	if not dead and _invulnerable > 0.0 and int(_invulnerable * 12.0) % 2 == 0:
+		return
+	if parachuting:
+		draw_texture(ParachuteTexture, Vector2(-24, -48))
+
+	var frame := _body_frame()
+	var lift := 0
+	if frame.begins_with("run"):
+		lift = RUN_LIFT[int(frame.substr(3))]
+	elif frame.begins_with("crouch"):
+		lift = -7
+	# Sprites face right; mirror the whole rig when Grit faces left.
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1))
+	_draw_cell(BodySheet, BODY_FRAMES.find(frame), 0, 32, Vector2(-16, -31))
+	if dead:
+		draw_set_transform(Vector2.ZERO)
 		return
 
+	var shoulder := Vector2(3, -16 - lift)
+	var arm := "knife" if _knife_flash > 0.0 else weapon
+	var angle := _local_aim_degrees()
+	if arm == "knife":
+		angle = 0.0
+	var column := 0
+	for i in ARM_ANGLES.size():
+		if absf(ARM_ANGLES[i] - angle) < absf(ARM_ANGLES[column] - angle):
+			column = i
+	_draw_cell(ArmSheet, column, ARM_ROWS.find(arm), 48, shoulder - Vector2(24, 24))
+	if _muzzle_flash > 0.0 and arm != "knife":
+		var tip := shoulder + Vector2.from_angle(deg_to_rad(ARM_ANGLES[column])) * (float(MUZZLE_LENGTH[weapon]) + 3.0)
+		draw_texture(MuzzleFlashTexture, tip - Vector2(4, 4))
+	draw_set_transform(Vector2.ZERO)
+
+
+func _body_frame() -> String:
+	if dead:
+		return "dead%d" % mini(int(_dead_time / 0.15), 2)
 	if parachuting:
-		draw_arc(Vector2(0, -44), 18.0, PI, TAU, 16, Color("c9c1a6"), 6.0)
-		draw_line(Vector2(-17, -44), Vector2(-4, -22), Color("8a8270"), 1.0)
-		draw_line(Vector2(17, -44), Vector2(4, -22), Color("8a8270"), 1.0)
+		return "hang"
+	if not is_on_floor():
+		return "jump" if velocity.y < 0.0 else "fall"
+	var moving := absf(velocity.x) > 1.0
+	if crouching:
+		return "crouch%d" % (int(_anim_time * 6.0) % 2 if moving else 0)
+	if moving:
+		return "run%d" % (int(_anim_time * 12.0) % 6)
+	return "idle%d" % (int(_anim_time * 1.5) % 2)
 
-	var height := 16.0 if crouching else 28.0
-	var olive := Color("6b7a3a")
-	var skin := Color("e0b48a")
-	# Legs and body.
-	draw_rect(Rect2(-5, -height * 0.35, 4, height * 0.35), Color("3d3324"))
-	draw_rect(Rect2(1, -height * 0.35, 4, height * 0.35), Color("3d3324"))
-	draw_rect(Rect2(-6, -height * 0.75, 12, height * 0.42), olive)
-	# Head with the red bandana.
-	var head_top := -height
-	draw_rect(Rect2(-4, head_top, 8, height * 0.25), skin)
-	draw_rect(Rect2(-5, head_top, 10, 2), Color("b33a3a"))
-	draw_rect(Rect2(2 * facing - 1, head_top + 3, 2, 1), Color.BLACK)
 
-	# Gun.
-	var shoulder := _shoulder_offset()
-	var heavy := weapon != "pistol"
-	var gun_end := shoulder + Vector2.from_angle(aim_angle) * (12.0 if heavy else 9.0)
-	draw_line(shoulder, gun_end, Color("2b2b2b"), 3.0 if heavy else 2.0)
-	if _muzzle_flash > 0.0:
-		draw_circle(gun_end + Vector2.from_angle(aim_angle) * 2.0, 3.0, Color("fff2a8"))
-	if _knife_flash > 0.0:
-		draw_arc(Vector2(facing * 10, -14), 10.0, -PI / 2.0 * facing, PI / 2.0 * facing, 8, Color.WHITE, 2.0)
+## Aim angle in the sprite's own space (always facing right), in degrees: -90 up, 90 down.
+func _local_aim_degrees() -> float:
+	var local := aim_angle if facing > 0 else PI - aim_angle
+	return rad_to_deg(wrapf(local, -PI, PI))
+
+
+func _draw_cell(sheet: Texture2D, column: int, row: int, size: int, at: Vector2) -> void:
+	draw_texture_rect_region(sheet, Rect2(at, Vector2(size, size)), Rect2(column * size, row * size, size, size))

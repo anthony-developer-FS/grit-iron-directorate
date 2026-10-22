@@ -1,7 +1,7 @@
 @tool
 class_name Interior
 extends Node2D
-## Dark back wall of an indoor area (bunker interior, elevator shaft), drawn behind the level.
+## Concrete back wall of an indoor area (bunker interior, elevator shaft), drawn behind the level.
 ## The origin is the top-left corner.
 
 @export var size := Vector2(200, 100):
@@ -14,10 +14,13 @@ extends Node2D
 		queue_redraw()
 
 
+const WallTexture := preload("res://assets/sprites/interior_wall.png")
+
+
+func _ready() -> void:
+	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+
+
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), color)
-	# Concrete panel seams.
-	for x in range(0, int(size.x), 32):
-		draw_line(Vector2(x, 0), Vector2(x, size.y), color.lightened(0.06), 1.0)
-	for y in range(0, int(size.y), 24):
-		draw_line(Vector2(0, y), Vector2(size.x, y), color.darkened(0.2), 1.0)
+	# Concrete panels, tinted toward `color` so each room keeps its own shade.
+	draw_texture_rect(WallTexture, Rect2(Vector2.ZERO, size), true, color.lightened(0.6))

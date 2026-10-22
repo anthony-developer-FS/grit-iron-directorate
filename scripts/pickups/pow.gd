@@ -17,6 +17,10 @@ const FOLLOW_DISTANCE := 26.0
 
 const PickupScene := preload("res://scenes/pickups/pickup.tscn")
 const BulletScene := preload("res://scenes/projectiles/bullet.tscn")
+## 32x32 frames from tools/art/pow.py, facing right. Must match FRAMES there.
+const Sheet := preload("res://assets/sprites/pow.png")
+const FRAMES := ["tied0", "tied1", "idle", "run0", "run1", "run2", "run3", "run4", "run5", "salute",
+	"fight", "fight_shoot"]
 
 @export_enum("hmg", "rocket", "shotgun", "flame", "grenades", "ammo") var reward := "hmg"
 
@@ -131,30 +135,17 @@ func _find_target() -> Node2D:
 
 
 func _draw() -> void:
-	var skin := Color("e0b48a")
-	var beard := Color("7a5230")
-	var shirt := Color("c9c1a6")
+	var frame := "idle"
 	match state:
 		State.TIED:
-			var sway := roundf(sin(_timer * 3.0))
-			draw_rect(Rect2(-7, -4, 14, 4), Color("3d3324"))
-			draw_rect(Rect2(-5 + sway, -14, 10, 10), shirt)
-			draw_rect(Rect2(-4 + sway, -21, 8, 7), skin)
-			draw_rect(Rect2(-4 + sway, -16, 8, 3), beard)
-			draw_line(Vector2(-6 + sway, -10), Vector2(6 + sway, -8), Color("a07c4a"), 1.0)
-			draw_line(Vector2(-6 + sway, -7), Vector2(6 + sway, -5), Color("a07c4a"), 1.0)
+			frame = "tied%d" % (int(_timer * 1.5) % 2)
+		State.SALUTING:
+			frame = "salute"
 		_:
-			var moving := absf(velocity.x) > 1.0
-			var bob := roundf(sin(_timer * 20.0)) if moving else 0.0
-			draw_rect(Rect2(-4, -9 + bob, 3, 9), Color("3d3324"))
-			draw_rect(Rect2(1, -9 + bob, 3, 9), Color("3d3324"))
-			draw_rect(Rect2(-5, -20 + bob, 10, 11), shirt)
-			draw_rect(Rect2(-4, -27 + bob, 8, 7), skin)
-			draw_rect(Rect2(-4, -22 + bob, 8, 3), beard)
-			draw_rect(Rect2(-5, -28 + bob, 10, 2), Color("5a6b3a"))
-			if state == State.SALUTING:
-				draw_line(Vector2(4, -18), Vector2(6, -26), skin, 2.0)
+			if absf(velocity.x) > 1.0:
+				frame = "run%d" % (int(_timer * 12.0) % 6)
 			elif state == State.FIGHTING:
-				draw_line(Vector2(facing * 2, -16 + bob), Vector2(facing * 11, -17 + bob), Color("3b2a1a"), 2.0)
-				if _muzzle_flash > 0.0:
-					draw_circle(Vector2(facing * 12, -17 + bob), 2.5, Color("fff2a8"))
+				frame = "fight_shoot" if _muzzle_flash > 0.0 else "fight"
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1))
+	draw_texture_rect_region(Sheet, Rect2(-16, -31, 32, 32), Rect2(FRAMES.find(frame) * 32, 0, 32, 32))
+	draw_set_transform(Vector2.ZERO)

@@ -6,6 +6,8 @@ extends Enemy
 const DRIVE_SPEED := 40.0
 const RiflemanScene := preload("res://scenes/enemies/rifleman.tscn")
 const ExplosionScene := preload("res://scenes/fx/explosion.tscn")
+## 72x44 frames from tools/art/vehicles.py: two tread frames, burnt out, hit flash. Faces right.
+const VehicleSheet := preload("res://assets/sprites/half_track.png")
 
 ## How far left of its spawn point it patrols, in pixels.
 @export var patrol_left := 150.0
@@ -49,7 +51,7 @@ func _think(delta: float, player: Player) -> void:
 	if _burst_timer <= 0.0 and player:
 		if _shots_left == 0:
 			_shots_left = 8
-		var muzzle := global_position + Vector2(-26, -30)
+		var muzzle := global_position + Vector2(facing * 10, -27)
 		var direction := (player.global_position + Vector2(0, -16) - muzzle)
 		# Keep shots near flat so they can be crouched under or jumped over.
 		direction = Vector2(-1, clampf(direction.y / maxf(absf(direction.x), 1.0), -0.15, 0.15))
@@ -82,28 +84,22 @@ func _process_death(delta: float) -> void:
 	_death_timer -= delta
 	velocity.x = 0.0
 	move_and_slide()
-	modulate = Color(0.4, 0.4, 0.4, clampf(_death_timer, 0.0, 1.0))
+	modulate.a = clampf(_death_timer, 0.0, 1.0)
 	if _death_timer <= 0.0:
 		queue_free()
 
 
 func _draw() -> void:
-	var hull := Color.WHITE if _hit_flash > 0.0 else Color("5d6166")
-	# Tracks at the back, wheels at the front.
-	draw_rect(Rect2(4, -10, 28, 10), Color("2a2c2e"))
-	for x in [8, 16, 24]:
-		draw_circle(Vector2(x, -5), 3.0, Color("4a4e54"))
-	draw_circle(Vector2(-22, -5), 5.0, Color("2a2c2e"))
-	draw_circle(Vector2(-22, -5), 2.0, Color("6a7078"))
-	# Armored body and cab.
-	draw_colored_polygon(PackedVector2Array([Vector2(-30, -10), Vector2(-26, -22), Vector2(34, -22), Vector2(34, -10)]), hull)
-	draw_rect(Rect2(-14, -30, 18, 8), hull.darkened(0.15))
-	draw_rect(Rect2(-12, -28, 6, 3), Color("1a1c1e"))
-	draw_rect(Rect2(6, -18, 20, 3), Color("b32424"))
-	# Mounted machine gun.
-	draw_line(Vector2(-14, -30), Vector2(-28, -30), Color("2b2b2b"), 2.0)
+	var frame := int(_anim_time * 8.0) % 2 if absf(velocity.x) > 1.0 else 0
+	if dead:
+		frame = 2
+	elif _hit_flash > 0.0:
+		frame = 3
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1))
+	draw_texture_rect_region(VehicleSheet, Rect2(-36, -43, 72, 44), Rect2(frame * 72, 0, 72, 44))
+	draw_set_transform(Vector2.ZERO)
 	if _shots_left > 0:
-		draw_circle(Vector2(-29, -30), 3.0, Color("fff2a8"))
+		draw_circle(Vector2(facing * 11, -27), 3.0, Color("fff2a8"))
 	if not dead:
 		draw_rect(Rect2(-20, -38, 40, 2), Color("3a0d0d"))
 		draw_rect(Rect2(-20, -38, 40.0 * health / max_health, 2), Color("ff4632"))
