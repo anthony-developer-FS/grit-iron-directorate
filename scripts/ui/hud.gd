@@ -60,20 +60,16 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if _showing_results:
-		if _results_ready and (Input.is_action_just_pressed("shoot") or Input.is_action_just_pressed("jump")):
+		if _results_ready and (Input.is_action_just_pressed("menu_accept") or Input.is_action_just_pressed("shoot")):
 			_go_to_title()
 		return
 
 	if Game.is_game_over:
-		if Input.is_action_just_pressed("shoot"):
-			_center_label.text = ""
-			Game.continue_game()
-		elif Input.is_action_just_pressed("grenade"):
-			Game.restart_from_checkpoint()
 		return
 
 	if get_tree().paused:
-		if Input.is_action_just_pressed("pause"):
+		# P or Start closes the pause menu from any screen; Escape is the menu's own Back.
+		if Input.is_action_just_pressed("pause") and not Input.is_action_just_pressed("menu_back"):
 			_resume()
 		return
 
@@ -166,7 +162,15 @@ func _on_boss_health_changed(fraction: float) -> void:
 
 func _on_game_over() -> void:
 	_message_time = 0.0
-	_set_center("GAME OVER\n\nSHOOT: CONTINUE HERE\nGRENADE: RESTART FROM CHECKPOINT")
+	_center_label.text = ""
+	var items: Array[Dictionary] = [
+		{"label": "CONTINUE HERE", "hint": "SCORE RESETS TO 0", "pick": func() -> void:
+			_pause_menu.visible = false
+			Game.continue_game()},
+		{"label": "RESTART FROM CHECKPOINT", "pick": Game.restart_from_checkpoint},
+		{"label": "QUIT TO TITLE", "pick": _go_to_title},
+	]
+	_pause_menu.show_items("GAME OVER", items)
 
 
 func _on_mission_completed() -> void:
@@ -190,7 +194,7 @@ func _on_mission_completed() -> void:
 		"TOTAL SCORE    %d" % Game.score,
 		"REYES: \"Coast is clear, Sergeant.",
 		"Kesselstadt is a long walk.\"",
-		"PRESS SHOOT",
+		"PRESS ENTER",
 	])
 	_results_panel.visible = true
 	await get_tree().create_timer(1.0).timeout

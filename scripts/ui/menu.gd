@@ -1,7 +1,7 @@
 class_name Menu
 extends Node2D
-## A vertical menu list, driven by the game's own actions: Up/Down to choose, Left/Right to
-## change a setting, Shoot or Jump to pick, Grenade to go back. Draws in screen coordinates,
+## A vertical menu list: Up/Down to choose, Left/Right to change a setting, Enter (gamepad A) to
+## pick, Escape (gamepad B) to go back. Draws in screen coordinates,
 ## centered horizontally, so it works on the title screen and on the HUD layer.
 ##
 ## Each item is a Dictionary with a "label" and any of:
@@ -25,10 +25,13 @@ var center_y := 110.0
 var page: PackedStringArray = []
 ## Dims everything behind the menu when its alpha is above zero.
 var backdrop := Color(0, 0, 0, 0)
-## Run when Grenade is pressed on the list; empty means Grenade does nothing.
+## Run when Escape is pressed on the list; empty means Escape does nothing.
 var on_back := Callable()
 
 var _time := 0.0
+## Input is ignored on the frame the menu opens, so the key that opened it (Escape for the
+## pause menu) doesn't also act on it.
+var _shown_frame := -1
 
 
 func _ready() -> void:
@@ -42,6 +45,7 @@ func show_items(new_title: String, new_items: Array[Dictionary], select := 0, ba
 	selected = clampi(select, 0, items.size() - 1)
 	page = []
 	_time = 0.0
+	_shown_frame = Engine.get_process_frames()
 	visible = true
 	queue_redraw()
 
@@ -56,8 +60,10 @@ func _process(delta: float) -> void:
 		return
 	_time += delta
 	queue_redraw()
+	if Engine.get_process_frames() == _shown_frame:
+		return
 	if not page.is_empty():
-		if _pressed(["shoot", "jump", "grenade"]):
+		if _pressed(["menu_accept", "menu_back"]):
 			Sfx.play("menu_move", 0.0)
 			page = []
 		return
@@ -69,14 +75,14 @@ func _process(delta: float) -> void:
 		_adjust(-1)
 	elif _pressed(["move_right"]):
 		_adjust(1)
-	elif _pressed(["shoot", "jump"]):
+	elif _pressed(["menu_accept"]):
 		var item := items[selected]
 		if item.has("pick"):
 			Sfx.play("menu_select", 0.0)
 			item["pick"].call()
 		elif item.has("adjust"):
 			_adjust(1)
-	elif _pressed(["grenade"]) and on_back.is_valid():
+	elif _pressed(["menu_back"]) and on_back.is_valid():
 		Sfx.play("menu_move", 0.0)
 		on_back.call()
 

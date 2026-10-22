@@ -14,6 +14,11 @@ const FIRE_RANGE := 170.0
 const BULLET_SPEED := 260.0
 ## How far behind Grit he keeps while fighting.
 const FOLLOW_DISTANCE := 26.0
+## Same jump as Grit's, so he clears whatever Grit can.
+const JUMP_VELOCITY := -200.0
+## He jumps up after Grit when Grit stands this much higher and is this close sideways.
+const CLIMB_HEIGHT := 12.0
+const CLIMB_REACH := 60.0
 
 const PickupScene := preload("res://scenes/pickups/pickup.tscn")
 const BulletScene := preload("res://scenes/projectiles/bullet.tscn")
@@ -55,6 +60,7 @@ func _physics_process(delta: float) -> void:
 		State.LEAVING:
 			facing = -1
 			velocity.x = -RUN_SPEED
+			_jump_if_blocked()
 			if _timer > 4.0 or get_global_transform_with_canvas().origin.x < -32.0:
 				queue_free()
 	move_and_slide()
@@ -98,6 +104,14 @@ func _fight(delta: float) -> void:
 	if absf(spot - global_position.x) > 6.0:
 		velocity.x = signf(spot - global_position.x) * RUN_SPEED
 		facing = int(signf(velocity.x))
+	# Jump up after Grit when he's on a ledge or the planks just ahead.
+	var grit_above := _rescuer.is_on_floor() and _rescuer.global_position.y < global_position.y - CLIMB_HEIGHT \
+			and absf(_rescuer.global_position.x - global_position.x) < CLIMB_REACH
+	if grit_above and is_on_floor():
+		velocity.y = JUMP_VELOCITY
+		if velocity.x == 0.0:
+			velocity.x = signf(_rescuer.global_position.x - global_position.x) * RUN_SPEED
+	_jump_if_blocked()
 	if _rescuer.is_on_floor() and global_position.distance_to(_rescuer.global_position) > 90.0:
 		# Left behind by a wall, a ledge or the elevator: catch up.
 		global_position = _rescuer.global_position + Vector2(-FOLLOW_DISTANCE * _rescuer.facing, 0)
@@ -118,6 +132,12 @@ func _fight(delta: float) -> void:
 	bullet.counts_for_accuracy = false
 	get_parent().add_child(bullet)
 	_muzzle_flash = 0.05
+
+
+## Jumps over whatever blocks the way while running: sandbags, crates, a step.
+func _jump_if_blocked() -> void:
+	if is_on_floor() and velocity.x != 0.0 and test_move(global_transform, Vector2(signf(velocity.x) * 4.0, 0)):
+		velocity.y = JUMP_VELOCITY
 
 
 func _find_target() -> Node2D:

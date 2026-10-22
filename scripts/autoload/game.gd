@@ -187,6 +187,8 @@ func _setup_input() -> void:
 	_bind("grenade", [KEY_C, KEY_K], [JOY_BUTTON_B])
 	_bind("pause", [KEY_ESCAPE, KEY_P], [JOY_BUTTON_START])
 	_bind("toggle_fullscreen", [KEY_F11])
+	_bind("menu_accept", [KEY_ENTER, KEY_KP_ENTER], [JOY_BUTTON_A])
+	_bind("menu_back", [KEY_ESCAPE, KEY_BACKSPACE], [JOY_BUTTON_B])
 
 
 ## Adds default bindings for an action unless the project already defines it,

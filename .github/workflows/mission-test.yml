@@ -34,3 +34,9 @@ jobs:
           ./godot --headless --fixed-fps 60 res://tests/menu_test.tscn 2>&1 | tee menu.log
           grep -q "MENU TEST PASSED" menu.log
           ! grep -q "SCRIPT ERROR" menu.log
+
+      - name: Run POW test
+        run: |
+          ./godot --headless --fixed-fps 60 res://tests/pow_test.tscn 2>&1 | tee pow.log
+          grep -q "POW TEST PASSED" pow.log
+          ! grep -q "SCRIPT ERROR" pow.log

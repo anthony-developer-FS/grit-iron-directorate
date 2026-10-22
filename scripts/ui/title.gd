@@ -60,4 +60,4 @@ func _draw() -> void:
 	draw_string(font, Vector2(0, 66), "KESSELSTADT RUN", HORIZONTAL_ALIGNMENT_CENTER, 320, 16, Color("ff6a4a"))
 	if _menu.title == "":
 		draw_string(font, Vector2(0, 78), "MISSION 1: OPERATION BREAKWATER", HORIZONTAL_ALIGNMENT_CENTER, 320, 8, Color("c8d0dc"))
-	draw_string(font, Vector2(0, 174), "SHOOT: SELECT    GRENADE: BACK", HORIZONTAL_ALIGNMENT_CENTER, 320, 8, Color("7a8494"))
+	draw_string(font, Vector2(0, 174), "ENTER: SELECT    ESC: BACK", HORIZONTAL_ALIGNMENT_CENTER, 320, 8, Color("7a8494"))
