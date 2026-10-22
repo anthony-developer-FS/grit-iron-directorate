@@ -1,11 +1,9 @@
-extends "res://tests/smoke_test.gd"
-## Runs the smoke-test bot with rendering on and saves screenshots along the way.
+extends "res://tests/mission_test.gd"
+## Runs the mission bot with rendering on and saves a screenshot at each beat of the level.
 ## Run (needs a display): godot --fixed-fps 60 res://tests/screenshot_tour.tscn -- <output dir>
 
-const SHOT_TIMES := [0.6, 2.2, 5.5, 7.0, 9.5, 13.0, 17.0, 21.0]
-
 var _out_dir := "user://screenshots"
-var _next_shot := 0
+var _taken := {}
 
 
 func _ready() -> void:
@@ -13,12 +11,33 @@ func _ready() -> void:
 	if args.size() > 0:
 		_out_dir = args[0]
 	DirAccess.make_dir_recursive_absolute(_out_dir)
-	super._ready()
+	await super._ready()
 
 
 func _process(_delta: float) -> void:
-	if _next_shot < SHOT_TIMES.size() and _time >= SHOT_TIMES[_next_shot]:
-		var image := get_viewport().get_texture().get_image()
-		image.resize(image.get_width() * 4, image.get_height() * 4, Image.INTERPOLATE_NEAREST)
-		image.save_png("%s/shot_%02d.png" % [_out_dir, _next_shot])
-		_next_shot += 1
+	if _player == null:
+		return
+	var x := _player.global_position.x
+	var y := _player.global_position.y
+	_shot_once("01_parachute_drop", _time > 1.0)
+	_shot_once("02_beach", x > 640.0)
+	_shot_once("03_trenches", x > 1150.0)
+	_shot_once("04_mg_nest", x > 1400.0)
+	_shot_once("05_artillery", x > 1880.0)
+	_shot_once("06_mortar_bluff", x > 2090.0)
+	_shot_once("07_half_track", _camera.locked and x < 3000.0 and _time - _taken.get("06_mortar_bluff", 0.0) > 4.0)
+	_shot_once("08_bunker", x > 2700.0)
+	_shot_once("09_elevator", y < 40.0 and x > 2890.0 and x < 2960.0)
+	_shot_once("10_cliff_top", x > 3120.0)
+	_shot_once("11_boss_turrets", _boss.phase == SeewallBattery.Phase.TURRETS and _boss_time > 2.0)
+	_shot_once("12_boss_cannon", _boss.phase == SeewallBattery.Phase.CANNON and _boss._charging)
+	_shot_once("13_boss_core", _boss.phase == SeewallBattery.Phase.CORE and _boss._timer > 1.5)
+	_shot_once("14_results", (_level.get_node("HUD/Results") as Control).visible)
+
+
+func _shot_once(shot_name: String, condition: bool) -> void:
+	if not condition or _taken.has(shot_name):
+		return
+	_taken[shot_name] = _time
+	var image := get_viewport().get_texture().get_image()
+	image.save_png("%s/%s.png" % [_out_dir, shot_name])

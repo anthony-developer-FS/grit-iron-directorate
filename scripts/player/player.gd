@@ -9,32 +9,47 @@ const AIR_ACCEL := 600.0
 const JUMP_VELOCITY := -200.0
 const GRAVITY := 560.0
 const MAX_FALL_SPEED := 320.0
+const PARACHUTE_FALL_SPEED := 38.0
 const KNIFE_RANGE := 20.0
 const KNIFE_DAMAGE := 3
 const RESPAWN_DELAY := 1.0
 const INVULNERABLE_TIME := 2.0
+const HIT_INVULNERABLE_TIME := 1.0
 const HMG_SWEEP_SPEED := 14.0
 const PLATFORM_LAYER := 4
 
+## kind: how the weapon fires. bullet = one shot, pellets = shotgun spread, flame = piercing bursts, rocket = homing rocket.
 const WEAPONS := {
-	"pistol": {"label": "PISTOL", "cooldown": 0.16, "damage": 1, "speed": 320.0, "spread": 0.0, "auto": false, "ammo": -1},
-	"hmg": {"label": "HEAVY MG", "cooldown": 0.06, "damage": 1, "speed": 360.0, "spread": 0.05, "auto": true, "ammo": 200},
+	"pistol": {"label": "PISTOL", "kind": "bullet", "cooldown": 0.16, "damage": 1, "speed": 320.0, "spread": 0.0, "auto": false, "ammo": -1},
+	"hmg": {"label": "HEAVY MG", "kind": "bullet", "cooldown": 0.06, "damage": 1, "speed": 360.0, "spread": 0.05, "auto": true, "ammo": 200},
+	"rocket": {"label": "ROCKET", "kind": "rocket", "cooldown": 0.35, "damage": 6, "speed": 0.0, "spread": 0.0, "auto": true, "ammo": 30},
+	"shotgun": {"label": "SHOTGUN", "kind": "pellets", "cooldown": 0.45, "damage": 2, "speed": 300.0, "spread": 0.25, "auto": true, "ammo": 30},
+	"flame": {"label": "FLAME SHOT", "kind": "flame", "cooldown": 0.12, "damage": 1, "speed": 170.0, "spread": 0.08, "auto": true, "ammo": 30},
 }
 
 const BulletScene := preload("res://scenes/projectiles/bullet.tscn")
 const GrenadeScene := preload("res://scenes/projectiles/grenade.tscn")
+const RocketScene := preload("res://scenes/projectiles/rocket.tscn")
 
 ## Falling below this y counts as falling into a pit.
-@export var fall_death_y := 220.0
+@export var fall_death_y := 260.0
+## Start the level drifting down under a parachute.
+@export var start_with_parachute := false
 
 var facing := 1
 var aim_angle := 0.0
 var crouching := false
 var dead := false
+var parachuting := false
 var weapon := "pistol"
 var ammo := -1
-## Set by the camera every frame so Grit can't walk back off screen.
+## Hits left in this life (1 on Hard, 3 on Easy).
+var health := 1
+## Set by the camera every frame so Grit can't leave the screen.
 var camera_left_limit := -INF
+var camera_right_limit := INF
+## Debug and test aid: Grit can't be hurt.
+var god_mode := false
 
 var _fire_cooldown := 0.0
 var _invulnerable := 0.0
@@ -49,6 +64,8 @@ var _last_safe_position := Vector2.ZERO
 func _ready() -> void:
 	add_to_group("player")
 	_last_safe_position = global_position
+	health = Game.hits_per_life()
+	parachuting = start_with_parachute
 	Game.continued.connect(_respawn)
 	give_weapon("pistol")
 
@@ -71,7 +88,8 @@ func _physics_process(delta: float) -> void:
 		velocity.x = direction * speed
 	else:
 		velocity.x = move_toward(velocity.x, direction * speed, AIR_ACCEL * delta)
-	velocity.y = minf(velocity.y + GRAVITY * delta, MAX_FALL_SPEED)
+	var max_fall := PARACHUTE_FALL_SPEED if parachuting else MAX_FALL_SPEED
+	velocity.y = minf(velocity.y + GRAVITY * delta, max_fall)
 
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		if crouching and _is_on_one_way_platform():
@@ -80,10 +98,15 @@ func _physics_process(delta: float) -> void:
 			velocity.y = JUMP_VELOCITY
 
 	move_and_slide()
+	if parachuting and is_on_floor():
+		parachuting = false
 
 	if global_position.x < camera_left_limit:
 		global_position.x = camera_left_limit
 		velocity.x = maxf(velocity.x, 0.0)
+	if global_position.x > camera_right_limit:
+		global_position.x = camera_right_limit
+		velocity.x = minf(velocity.x, 0.0)
 	if is_on_floor():
 		_last_safe_position = global_position
 	if global_position.y > fall_death_y:
@@ -103,15 +126,26 @@ func give_weapon(weapon_name: String) -> void:
 	Game.set_weapon(WEAPONS[weapon_name]["label"], ammo)
 
 
-## Damage interface shared by everything that can be shot. Grit dies in one hit.
+## Damage interface shared by everything that can be shot. On Hard Grit dies in one hit; on Easy he has 3 hits per life.
 func take_damage(_amount: int) -> void:
-	kill()
+	if dead or god_mode or _invulnerable > 0.0:
+		return
+	health -= 1
+	Game.player_health_changed.emit(health)
+	if health <= 0:
+		kill()
+	else:
+		_invulnerable = HIT_INVULNERABLE_TIME
+		Game.shake(2.0, 0.15)
 
 
 func kill(ignore_invulnerability := false) -> void:
-	if dead or (_invulnerable > 0.0 and not ignore_invulnerability):
+	if dead or god_mode and not ignore_invulnerability:
+		return
+	if _invulnerable > 0.0 and not ignore_invulnerability:
 		return
 	dead = true
+	parachuting = false
 	velocity = Vector2.ZERO
 	_set_crouching(false)
 	set_deferred("collision_layer", 0)
@@ -126,6 +160,14 @@ func is_invulnerable() -> bool:
 	return _invulnerable > 0.0
 
 
+## Puts Grit at a spot with no momentum, e.g. when restarting from a checkpoint.
+func place_at(spot: Vector2) -> void:
+	global_position = spot
+	_last_safe_position = spot
+	velocity = Vector2.ZERO
+	parachuting = false
+
+
 func _respawn() -> void:
 	dead = false
 	set_deferred("collision_layer", 2)
@@ -135,6 +177,8 @@ func _respawn() -> void:
 		global_position.x = maxf(global_position.x, camera_left_limit)
 	velocity = Vector2(0, -120)
 	_invulnerable = INVULNERABLE_TIME
+	health = Game.hits_per_life()
+	Game.player_health_changed.emit(health)
 	give_weapon("pistol")
 	Game.reset_grenades()
 	queue_redraw()
@@ -205,11 +249,20 @@ func _handle_shooting() -> void:
 		_fire_cooldown = 0.25
 		return
 
-	var spread: float = stats["spread"]
-	var bullet := BulletScene.instantiate() as Bullet
-	var bullet_velocity := Vector2.from_angle(aim_angle + randf_range(-spread, spread)) * float(stats["speed"])
-	bullet.setup(Bullet.Team.PLAYER, _muzzle_position(), bullet_velocity, stats["damage"])
-	get_parent().add_child(bullet)
+	match stats["kind"]:
+		"rocket":
+			var rocket := RocketScene.instantiate() as Rocket
+			rocket.position = _muzzle_position()
+			rocket.direction = Vector2.from_angle(aim_angle)
+			get_parent().add_child(rocket)
+		"pellets":
+			for i in 5:
+				var offset := lerpf(-1.0, 1.0, i / 4.0) * float(stats["spread"])
+				_spawn_bullet(aim_angle + offset, stats, Bullet.Style.PELLET)
+		"flame":
+			_spawn_bullet(aim_angle + randf_range(-1.0, 1.0) * float(stats["spread"]), stats, Bullet.Style.FLAME)
+		_:
+			_spawn_bullet(aim_angle + randf_range(-1.0, 1.0) * float(stats["spread"]), stats, Bullet.Style.BULLET)
 	_fire_cooldown = stats["cooldown"]
 	_muzzle_flash = 0.05
 
@@ -221,9 +274,17 @@ func _handle_shooting() -> void:
 			Game.set_weapon(stats["label"], ammo)
 
 
+func _spawn_bullet(angle: float, stats: Dictionary, style: Bullet.Style) -> void:
+	var bullet := BulletScene.instantiate() as Bullet
+	bullet.setup(Bullet.Team.PLAYER, _muzzle_position(), Vector2.from_angle(angle) * float(stats["speed"]), stats["damage"], style)
+	get_parent().add_child(bullet)
+
+
 ## Enemies right in front of Grit get the knife instead of a bullet.
 func _find_knife_target() -> Node2D:
 	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not enemy is Enemy:
+			continue
 		var offset: Vector2 = enemy.global_position - global_position
 		if offset.x * facing >= -4.0 and absf(offset.x) <= KNIFE_RANGE and absf(offset.y) < 20.0:
 			return enemy
@@ -244,9 +305,14 @@ func _draw() -> void:
 		draw_rect(Rect2(-12, -6, 24, 6), Color("6b7a3a"))
 		draw_rect(Rect2(8 * facing - 3, -7, 6, 6), Color("e0b48a"))
 		return
-	# Blink while invulnerable after a respawn.
+	# Blink while invulnerable after a hit or respawn.
 	if _invulnerable > 0.0 and int(_invulnerable * 12.0) % 2 == 0:
 		return
+
+	if parachuting:
+		draw_arc(Vector2(0, -44), 18.0, PI, TAU, 16, Color("c9c1a6"), 6.0)
+		draw_line(Vector2(-17, -44), Vector2(-4, -22), Color("8a8270"), 1.0)
+		draw_line(Vector2(17, -44), Vector2(4, -22), Color("8a8270"), 1.0)
 
 	var height := 16.0 if crouching else 28.0
 	var olive := Color("6b7a3a")
@@ -263,9 +329,9 @@ func _draw() -> void:
 
 	# Gun.
 	var shoulder := _shoulder_offset()
-	var gun_length := 12.0 if weapon == "hmg" else 9.0
-	var gun_end := shoulder + Vector2.from_angle(aim_angle) * gun_length
-	draw_line(shoulder, gun_end, Color("2b2b2b"), 3.0 if weapon == "hmg" else 2.0)
+	var heavy := weapon != "pistol"
+	var gun_end := shoulder + Vector2.from_angle(aim_angle) * (12.0 if heavy else 9.0)
+	draw_line(shoulder, gun_end, Color("2b2b2b"), 3.0 if heavy else 2.0)
 	if _muzzle_flash > 0.0:
 		draw_circle(gun_end + Vector2.from_angle(aim_angle) * 2.0, 3.0, Color("fff2a8"))
 	if _knife_flash > 0.0:

@@ -1,0 +1,500 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/level/mission.gd" id="1_mission"]
+[ext_resource type="Script" path="res://scripts/level/block.gd" id="2_block"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="3_player"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/rifleman.tscn" id="4_rifleman"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/grenadier.tscn" id="5_grenadier"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/shield_trooper.tscn" id="6_shield"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/mortar_crew.tscn" id="7_mortar"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/mg_nest.tscn" id="8_mgnest"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/half_track.tscn" id="9_halftrack"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/seewall_battery.tscn" id="10_boss"]
+[ext_resource type="PackedScene" path="res://scenes/pickups/pow.tscn" id="11_pow"]
+[ext_resource type="PackedScene" path="res://scenes/pickups/pickup.tscn" id="12_pickup"]
+[ext_resource type="PackedScene" path="res://scenes/level/elevator.tscn" id="13_elevator"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="14_hud"]
+[ext_resource type="Script" path="res://scripts/camera/forward_camera.gd" id="15_camera"]
+[ext_resource type="Script" path="res://scripts/level/backdrop.gd" id="16_backdrop"]
+[ext_resource type="Script" path="res://scripts/level/prop.gd" id="17_prop"]
+[ext_resource type="Script" path="res://scripts/level/interior.gd" id="18_interior"]
+[ext_resource type="Script" path="res://scripts/level/arena_trigger.gd" id="19_arena"]
+[ext_resource type="Script" path="res://scripts/level/artillery_zone.gd" id="20_artillery"]
+[ext_resource type="Script" path="res://scripts/level/checkpoint.gd" id="21_checkpoint"]
+[ext_resource type="Script" path="res://scripts/fx/rain.gd" id="22_rain"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_480x120"]
+size = Vector2(480, 120)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_16x200"]
+size = Vector2(16, 200)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_16x80"]
+size = Vector2(16, 80)
+
+[node name="Mission1" type="Node2D"]
+script = ExtResource("1_mission")
+
+[node name="Sky" type="CanvasLayer" parent="."]
+layer = -10
+
+[node name="Color" type="ColorRect" parent="Sky"]
+offset_right = 320.0
+offset_bottom = 180.0
+color = Color(0.09, 0.12, 0.17, 1)
+
+[node name="Parallax" type="Parallax2D" parent="."]
+z_index = -5
+scroll_scale = Vector2(0.3, 1)
+repeat_size = Vector2(320, 0)
+repeat_times = 3
+
+[node name="Backdrop" type="Node2D" parent="Parallax"]
+script = ExtResource("16_backdrop")
+
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2(160, 90)
+process_callback = 0
+script = ExtResource("15_camera")
+target_path = NodePath("../Player")
+level_end_x = 3640.0
+min_y = -160.0
+
+[node name="Interiors" type="Node2D" parent="."]
+z_index = -1
+
+[node name="Bunker" type="Node2D" parent="Interiors"]
+position = Vector2(2600, 70)
+script = ExtResource("18_interior")
+size = Vector2(300, 80)
+color = Color(0.14, 0.16, 0.18, 1)
+
+[node name="Shaft" type="Node2D" parent="Interiors"]
+position = Vector2(2880, -200)
+script = ExtResource("18_interior")
+size = Vector2(80, 356)
+color = Color(0.11, 0.12, 0.14, 1)
+
+[node name="Props" type="Node2D" parent="."]
+z_index = -1
+
+[node name="Prop1" type="Node2D" parent="Props"]
+position = Vector2(120, 150)
+script = ExtResource("17_prop")
+kind = "hedgehog"
+
+[node name="Prop2" type="Node2D" parent="Props"]
+position = Vector2(200, 150)
+script = ExtResource("17_prop")
+kind = "wire"
+
+[node name="Prop3" type="Node2D" parent="Props"]
+position = Vector2(300, 150)
+script = ExtResource("17_prop")
+kind = "hedgehog"
+
+[node name="Prop4" type="Node2D" parent="Props"]
+position = Vector2(380, 150)
+script = ExtResource("17_prop")
+kind = "sign"
+
+[node name="Prop5" type="Node2D" parent="Props"]
+position = Vector2(560, 150)
+script = ExtResource("17_prop")
+kind = "hedgehog"
+
+[node name="Prop6" type="Node2D" parent="Props"]
+position = Vector2(760, 150)
+script = ExtResource("17_prop")
+kind = "wire"
+
+[node name="Prop7" type="Node2D" parent="Props"]
+position = Vector2(950, 150)
+script = ExtResource("17_prop")
+kind = "crater"
+
+[node name="Prop8" type="Node2D" parent="Props"]
+position = Vector2(1060, 128)
+script = ExtResource("17_prop")
+kind = "wire"
+
+[node name="Prop9" type="Node2D" parent="Props"]
+position = Vector2(1330, 150)
+script = ExtResource("17_prop")
+kind = "crate"
+
+[node name="Prop10" type="Node2D" parent="Props"]
+position = Vector2(1700, 150)
+script = ExtResource("17_prop")
+kind = "crater"
+
+[node name="Prop11" type="Node2D" parent="Props"]
+position = Vector2(1780, 150)
+script = ExtResource("17_prop")
+kind = "crater"
+
+[node name="Prop12" type="Node2D" parent="Props"]
+position = Vector2(1890, 150)
+script = ExtResource("17_prop")
+kind = "crater"
+
+[node name="Prop13" type="Node2D" parent="Props"]
+position = Vector2(2060, 150)
+script = ExtResource("17_prop")
+kind = "crater"
+
+[node name="Prop14" type="Node2D" parent="Props"]
+position = Vector2(2280, 150)
+script = ExtResource("17_prop")
+kind = "hedgehog"
+
+[node name="Prop15" type="Node2D" parent="Props"]
+position = Vector2(2620, 150)
+script = ExtResource("17_prop")
+kind = "poster"
+
+[node name="Prop16" type="Node2D" parent="Props"]
+position = Vector2(2650, 150)
+script = ExtResource("17_prop")
+kind = "pipes"
+
+[node name="Prop17" type="Node2D" parent="Props"]
+position = Vector2(2700, 150)
+script = ExtResource("17_prop")
+kind = "ore_crate"
+
+[node name="Prop18" type="Node2D" parent="Props"]
+position = Vector2(2722, 150)
+script = ExtResource("17_prop")
+kind = "ore_crate"
+
+[node name="Prop19" type="Node2D" parent="Props"]
+position = Vector2(2740, 150)
+script = ExtResource("17_prop")
+kind = "lamp"
+
+[node name="Prop20" type="Node2D" parent="Props"]
+position = Vector2(2840, 150)
+script = ExtResource("17_prop")
+kind = "lamp"
+
+[node name="Prop21" type="Node2D" parent="Props"]
+position = Vector2(3040, -90)
+script = ExtResource("17_prop")
+kind = "wire"
+
+[node name="Prop22" type="Node2D" parent="Props"]
+position = Vector2(3290, -90)
+script = ExtResource("17_prop")
+kind = "sign"
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Beach" type="StaticBody2D" parent="World"]
+position = Vector2(0, 150)
+script = ExtResource("2_block")
+size = Vector2(1000, 40)
+color = Color(0.55, 0.47, 0.33, 1)
+
+[node name="Sandbags1" type="StaticBody2D" parent="World"]
+position = Vector2(500, 134)
+script = ExtResource("2_block")
+size = Vector2(24, 16)
+color = Color(0.6, 0.52, 0.36, 1)
+
+[node name="Dune" type="StaticBody2D" parent="World"]
+position = Vector2(620, 138)
+script = ExtResource("2_block")
+size = Vector2(70, 12)
+color = Color(0.55, 0.47, 0.33, 1)
+
+[node name="SandbagTower" type="StaticBody2D" parent="World"]
+position = Vector2(880, 126)
+script = ExtResource("2_block")
+size = Vector2(30, 24)
+color = Color(0.6, 0.52, 0.36, 1)
+
+[node name="TrenchGroundA" type="StaticBody2D" parent="World"]
+position = Vector2(1000, 150)
+script = ExtResource("2_block")
+size = Vector2(230, 40)
+color = Color(0.42, 0.36, 0.27, 1)
+
+[node name="DugoutFloor" type="StaticBody2D" parent="World"]
+position = Vector2(1230, 172)
+script = ExtResource("2_block")
+size = Vector2(50, 18)
+color = Color(0.42, 0.36, 0.27, 1)
+
+[node name="DugoutStep" type="StaticBody2D" parent="World"]
+position = Vector2(1266, 160)
+script = ExtResource("2_block")
+size = Vector2(14, 12)
+color = Color(0.42, 0.36, 0.27, 1)
+
+[node name="TrenchGroundB" type="StaticBody2D" parent="World"]
+position = Vector2(1280, 150)
+script = ExtResource("2_block")
+size = Vector2(1620, 40)
+color = Color(0.42, 0.36, 0.27, 1)
+
+[node name="ParapetA" type="StaticBody2D" parent="World"]
+position = Vector2(1000, 128)
+script = ExtResource("2_block")
+size = Vector2(80, 22)
+color = Color(0.6, 0.52, 0.36, 1)
+
+[node name="ParapetB1" type="StaticBody2D" parent="World"]
+position = Vector2(1200, 128)
+script = ExtResource("2_block")
+size = Vector2(30, 22)
+color = Color(0.6, 0.52, 0.36, 1)
+
+[node name="DugoutRoof" type="StaticBody2D" parent="World"]
+position = Vector2(1230, 128)
+script = ExtResource("2_block")
+size = Vector2(50, 5)
+color = Color(0.45, 0.32, 0.2, 1)
+one_way = true
+
+[node name="ParapetB2" type="StaticBody2D" parent="World"]
+position = Vector2(1280, 128)
+script = ExtResource("2_block")
+size = Vector2(20, 22)
+color = Color(0.6, 0.52, 0.36, 1)
+
+[node name="ParapetC" type="StaticBody2D" parent="World"]
+position = Vector2(1420, 128)
+script = ExtResource("2_block")
+size = Vector2(90, 22)
+color = Color(0.6, 0.52, 0.36, 1)
+
+[node name="MortarBluff" type="StaticBody2D" parent="World"]
+position = Vector2(2120, 118)
+script = ExtResource("2_block")
+size = Vector2(90, 32)
+color = Color(0.42, 0.36, 0.27, 1)
+
+[node name="BunkerRoof" type="StaticBody2D" parent="World"]
+position = Vector2(2600, -90)
+script = ExtResource("2_block")
+size = Vector2(280, 160)
+color = Color(0.25, 0.27, 0.29, 1)
+
+[node name="POWShelf" type="StaticBody2D" parent="World"]
+position = Vector2(2780, 118)
+script = ExtResource("2_block")
+size = Vector2(40, 5)
+color = Color(0.45, 0.32, 0.2, 1)
+one_way = true
+
+[node name="ShaftWall" type="StaticBody2D" parent="World"]
+position = Vector2(2880, -200)
+script = ExtResource("2_block")
+size = Vector2(20, 270)
+color = Color(0.25, 0.27, 0.29, 1)
+
+[node name="ShaftFloor" type="StaticBody2D" parent="World"]
+position = Vector2(2900, 156)
+script = ExtResource("2_block")
+size = Vector2(60, 34)
+color = Color(0.3, 0.32, 0.34, 1)
+
+[node name="Cliff" type="StaticBody2D" parent="World"]
+position = Vector2(2960, -90)
+script = ExtResource("2_block")
+size = Vector2(760, 280)
+color = Color(0.25, 0.27, 0.29, 1)
+
+[node name="CliffSandbags" type="StaticBody2D" parent="World"]
+position = Vector2(3200, -106)
+script = ExtResource("2_block")
+size = Vector2(30, 16)
+color = Color(0.6, 0.52, 0.36, 1)
+
+[node name="ArenaPlank1" type="StaticBody2D" parent="World"]
+position = Vector2(3390, -122)
+script = ExtResource("2_block")
+size = Vector2(44, 5)
+color = Color(0.45, 0.32, 0.2, 1)
+one_way = true
+
+[node name="ArenaPlank2" type="StaticBody2D" parent="World"]
+position = Vector2(3460, -122)
+script = ExtResource("2_block")
+size = Vector2(44, 5)
+color = Color(0.45, 0.32, 0.2, 1)
+one_way = true
+
+[node name="Elevator" parent="World" instance=ExtResource("13_elevator")]
+position = Vector2(2902, 150)
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="Rifleman1" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(250, 150)
+
+[node name="Rifleman2" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(340, 150)
+
+[node name="Grenadier3" parent="Enemies" instance=ExtResource("5_grenadier")]
+position = Vector2(660, 138)
+
+[node name="Rifleman4" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(780, 150)
+
+[node name="Rifleman5" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(830, 150)
+
+[node name="Grenadier6" parent="Enemies" instance=ExtResource("5_grenadier")]
+position = Vector2(895, 126)
+
+[node name="Rifleman7" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(1050, 128)
+
+[node name="Shield8" parent="Enemies" instance=ExtResource("6_shield")]
+position = Vector2(1170, 150)
+
+[node name="Shield9" parent="Enemies" instance=ExtResource("6_shield")]
+position = Vector2(1360, 150)
+
+[node name="Grenadier10" parent="Enemies" instance=ExtResource("5_grenadier")]
+position = Vector2(1500, 128)
+
+[node name="Rifleman11" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(1560, 150)
+
+[node name="Rifleman12" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(1800, 150)
+
+[node name="Rifleman13" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(1950, 150)
+
+[node name="Mortar14" parent="Enemies" instance=ExtResource("7_mortar")]
+position = Vector2(2150, 118)
+
+[node name="Mortar15" parent="Enemies" instance=ExtResource("7_mortar")]
+position = Vector2(2190, 118)
+
+[node name="Rifleman16" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(2680, 150)
+
+[node name="Rifleman17" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(2760, 150)
+
+[node name="Shield18" parent="Enemies" instance=ExtResource("6_shield")]
+position = Vector2(2800, 150)
+
+[node name="Rifleman19" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(3080, -90)
+
+[node name="Rifleman20" parent="Enemies" instance=ExtResource("4_rifleman")]
+position = Vector2(3150, -90)
+
+[node name="Grenadier21" parent="Enemies" instance=ExtResource("5_grenadier")]
+position = Vector2(3215, -106)
+
+[node name="Shield22" parent="Enemies" instance=ExtResource("6_shield")]
+position = Vector2(3260, -90)
+
+[node name="MGNest1" parent="Enemies" instance=ExtResource("8_mgnest")]
+position = Vector2(1475, 128)
+
+[node name="MGNest2" parent="Enemies" instance=ExtResource("8_mgnest")]
+position = Vector2(2870, 150)
+
+[node name="HalfTrack" parent="Enemies" instance=ExtResource("9_halftrack")]
+position = Vector2(2530, 150)
+
+[node name="SeewallBattery" parent="Enemies" instance=ExtResource("10_boss")]
+position = Vector2(3540, -90)
+arena_left = -220.0
+
+[node name="Pickups" type="Node2D" parent="."]
+
+[node name="PowBeach" parent="Pickups" instance=ExtResource("11_pow")]
+position = Vector2(720, 150)
+reward = "hmg"
+
+[node name="PowDugout" parent="Pickups" instance=ExtResource("11_pow")]
+position = Vector2(1250, 172)
+reward = "shotgun"
+
+[node name="PowField" parent="Pickups" instance=ExtResource("11_pow")]
+position = Vector2(2000, 150)
+reward = "grenades"
+
+[node name="PowBunker" parent="Pickups" instance=ExtResource("11_pow")]
+position = Vector2(2800, 118)
+reward = "flame"
+
+[node name="BombCrate" parent="Pickups" instance=ExtResource("12_pickup")]
+position = Vector2(1620, 150)
+kind = "grenades"
+
+[node name="ArtilleryZone" type="Area2D" parent="."]
+position = Vector2(1640, 50)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("20_artillery")
+
+[node name="Shape" type="CollisionShape2D" parent="ArtilleryZone"]
+position = Vector2(240, 60)
+shape = SubResource("RectangleShape2D_480x120")
+
+[node name="HalfTrackArena" type="Area2D" parent="."]
+position = Vector2(2290, 150)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("19_arena")
+camera_path = NodePath("../Camera")
+boss_path = NodePath("../Enemies/HalfTrack")
+lock_x = 2400.0
+announcement = "WARNING! ARMOR INCOMING!"
+reward = "rocket"
+
+[node name="Shape" type="CollisionShape2D" parent="HalfTrackArena"]
+position = Vector2(8, -100)
+shape = SubResource("RectangleShape2D_16x200")
+
+[node name="BossArena" type="Area2D" parent="."]
+position = Vector2(3340, -90)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("19_arena")
+camera_path = NodePath("../Camera")
+boss_path = NodePath("../Enemies/SeewallBattery")
+lock_x = 3480.0
+announcement = "WARNING!"
+reward = "none"
+
+[node name="Shape" type="CollisionShape2D" parent="BossArena"]
+position = Vector2(8, -100)
+shape = SubResource("RectangleShape2D_16x200")
+
+[node name="Checkpoint" type="Area2D" parent="."]
+position = Vector2(3000, -90)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("21_checkpoint")
+
+[node name="Shape" type="CollisionShape2D" parent="Checkpoint"]
+position = Vector2(0, -40)
+shape = SubResource("RectangleShape2D_16x80")
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+position = Vector2(60, 46)
+start_with_parachute = true
+
+[node name="Weather" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="Rain" type="Node2D" parent="Weather"]
+script = ExtResource("22_rain")
+indoor_areas = Array[Rect2]([Rect2(2600, -200, 360, 352)])
+
+[node name="HUD" parent="." instance=ExtResource("14_hud")]
