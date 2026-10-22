@@ -11,6 +11,8 @@ const SIGHT_RANGE := 160.0
 const PANIC_RANGE := 26.0
 const AIM_TIME := 0.55
 const BULLET_SPEED := 110.0
+const FRAMES := ["idle", "run0", "run1", "run2", "run3", "run4", "run5", "aim", "shoot",
+	"panic0", "panic1", "dead0", "dead1"]
 
 @export var patrol_distance := 24.0
 
@@ -19,6 +21,7 @@ var state := State.PATROL
 var _timer := 0.0
 var _panic_cooldown := 0.0
 var _home_x := 0.0
+var _shot_flash := 0.0
 
 
 func _ready() -> void:
@@ -29,6 +32,7 @@ func _ready() -> void:
 
 func _think(delta: float, player: Player) -> void:
 	_timer -= delta
+	_shot_flash = maxf(_shot_flash - delta, 0.0)
 	_panic_cooldown = maxf(_panic_cooldown - delta, 0.0)
 
 	match state:
@@ -83,15 +87,26 @@ func _shoot(player: Player) -> void:
 		direction.y = 0.0
 	direction.x = absf(direction.x) * facing
 	_fire_bullet(muzzle, direction, BULLET_SPEED)
+	_shot_flash = 0.1
 
 
 func _draw() -> void:
 	if dead:
-		_draw_corpse(Color("7d848c"))
+		_draw_frame(0, _death_frame(FRAMES))
 		return
-	_draw_soldier(Color("7d848c"))
-	draw_line(Vector2(facing * 2, -17), Vector2(facing * 12, -18), Color("3b2a1a"), 2.0)
-	if state == State.AIM and int(_timer * 16.0) % 2 == 0:
-		draw_circle(Vector2(facing * 12, -18), 2.0, Color("ff3b3b"))
-	if state == State.PANIC:
-		draw_string(ThemeDB.fallback_font, Vector2(-2, -30), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("ffe066"))
+	match state:
+		State.PANIC:
+			_draw_frame(0, _cycle(FRAMES, "panic", 2, 8.0))
+			draw_string(ThemeDB.fallback_font, Vector2(-2, -32), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("ffe066"))
+		State.AIM:
+			_draw_frame(0, FRAMES.find("aim"))
+			# Blinking red telegraph at the muzzle before the shot.
+			if int(_timer * 16.0) % 2 == 0:
+				draw_circle(Vector2(facing * 14, -17), 1.5, Color("ff3b3b"))
+		_:
+			if _shot_flash > 0.0:
+				_draw_frame(0, FRAMES.find("shoot"))
+			elif absf(velocity.x) > 1.0:
+				_draw_frame(0, _cycle(FRAMES, "run", 6, 8.0))
+			else:
+				_draw_frame(0, FRAMES.find("idle"))

@@ -1,7 +1,7 @@
 class_name Enemy
 extends CharacterBody2D
 ## Shared behavior for Directorate ground troops: health, hit flash, waking up when on screen,
-## clean-up once left behind, and the death knockback. Subclasses override _think() and _draw_body().
+## clean-up once left behind, and the death knockback. Subclasses override _think() and _draw().
 ## The node origin sits at the enemy's feet.
 
 signal defeated
@@ -9,6 +9,10 @@ signal defeated
 const GRAVITY := 560.0
 const DEATH_TIME := 0.8
 const BulletScene := preload("res://scenes/projectiles/bullet.tscn")
+## One row per trooper type, 32x32 frames, from tools/art/trooper.py. The flash sheet is the
+## same frames in solid white, shown for a moment when a trooper is hit.
+const Sheet := preload("res://assets/sprites/enemies.png")
+const FlashSheet := preload("res://assets/sprites/enemies_flash.png")
 
 @export var max_health := 1
 @export var score_value := 100
@@ -21,6 +25,7 @@ var dead := false
 var _hit_flash := 0.0
 var _active := false
 var _death_timer := 0.0
+var _anim_time := 0.0
 
 
 func _ready() -> void:
@@ -32,6 +37,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	velocity.y = minf(velocity.y + GRAVITY * delta, 320.0)
 	_hit_flash = maxf(_hit_flash - delta, 0.0)
+	_anim_time += delta
 
 	if dead:
 		_process_death(delta)
@@ -110,18 +116,20 @@ func _fire_bullet(from: Vector2, direction: Vector2, speed: float) -> void:
 	get_parent().add_child(bullet)
 
 
-## The Directorate infantry look: grey uniform, red armband, gas-mask helmet.
-func _draw_soldier(uniform: Color, crouched := false) -> void:
-	var lift := 6.0 if crouched else 0.0
-	var body := Color.WHITE if _hit_flash > 0.0 else uniform
-	draw_rect(Rect2(-5, -9 + lift * 0.5, 4, 9 - lift * 0.5), Color("2e3033"))
-	draw_rect(Rect2(1, -9 + lift * 0.5, 4, 9 - lift * 0.5), Color("2e3033"))
-	draw_rect(Rect2(-6, -20 + lift, 12, 12), body)
-	draw_rect(Rect2(-6, -16 + lift, 12, 2), Color("b32424"))
-	draw_rect(Rect2(-5, -26 + lift, 10, 6), Color("a3aab2"))
-	draw_rect(Rect2(-6, -27 + lift, 12, 2), Color("3f4347"))
-	draw_rect(Rect2(facing * 2 - 1, -23 + lift, 3, 2), Color("ff4632"))
+## Draws a frame from the trooper sheet, mirrored to match `facing`. The sprites face right
+## and stand with their feet on the node origin.
+func _draw_frame(row: int, column: int) -> void:
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1))
+	var sheet := FlashSheet if _hit_flash > 0.0 and not dead else Sheet
+	draw_texture_rect_region(sheet, Rect2(-16, -31, 32, 32), Rect2(column * 32, row * 32, 32, 32))
+	draw_set_transform(Vector2.ZERO)
 
 
-func _draw_corpse(color: Color) -> void:
-	draw_rect(Rect2(-12, -6, 24, 6), color)
+## Death frames: knocked back, then flat once the body has dropped.
+func _death_frame(names: Array) -> int:
+	return names.find("dead0" if _death_timer > DEATH_TIME - 0.3 else "dead1")
+
+
+## Cycles through `prefix`0.. frames at `fps`.
+func _cycle(names: Array, prefix: String, count: int, fps: float) -> int:
+	return names.find("%s%d" % [prefix, int(_anim_time * fps) % count])

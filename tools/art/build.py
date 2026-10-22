@@ -6,6 +6,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 import grit  # noqa: E402
+import trooper  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "sprites")
 
@@ -17,6 +18,8 @@ def main():
         "grit_arms.png": grit.arms_sheet(),
         "parachute.png": grit.parachute(),
         "muzzle_flash.png": grit.muzzle_flash(),
+        "enemies.png": trooper.enemy_sheet(),
+        "enemies_flash.png": trooper.flash_sheet(),
     }
     for name, image in outputs.items():
         image.save(os.path.join(OUT, name))
