@@ -25,9 +25,11 @@ A Metal Slug style run-and-gun shooter, built in Godot 4. This is Game 1 of the 
 4. **Artillery barrage:** flares mark where shells will land; mortar crews hold the bluff.
 5. **Half-track ambush:** the camera locks and an armored half-track rolls in. Beat it for the rocket launcher.
 6. **Bunker interior:** another MG nest, a POW on a high shelf, and a freight elevator up the cliff while troops drop in.
-7. **Cliff top and boss:** checkpoint, then the Seewall battery in three phases: flak turrets, the main cannon (get up on the planks), and the exposed generator core.
+7. **Cliff top and boss:** checkpoint, then the Seewall battery in three phases: flak turrets, the main cannon (get up on the planks), and the exposed generator core. Every boss volley fires its fastest shot first and slowest last, so the shots arrive one at a time and each can be jumped.
 
 Pick **Easy** (3 hits per life) or **Hard** (one hit, arcade rules) on the title screen.
+
+Weapons drop as the gun itself. **Ammo boxes** refill Grit's special weapon, or bring back the last one he had if he's down to the pistol. Freed **POWs** drop a reward, then grab a rifle and fight beside Grit for up to 10 seconds.
 
 ![Seewall battery, final phase](docs/screenshots/boss_core.png)
 

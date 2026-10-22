@@ -16,6 +16,8 @@ var damage := 1
 var lifetime := 1.6
 ## Piercing projectiles (flames) pass through targets, hitting each one once.
 var pierce := false
+## Off for shots that shouldn't affect Grit's accuracy (e.g. from rescued POWs).
+var counts_for_accuracy := true
 
 var _age := 0.0
 var _already_hit: Array[Node] = []
@@ -42,7 +44,7 @@ func setup(bullet_team: Team, start_position: Vector2, start_velocity: Vector2, 
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
-	if team == Team.PLAYER:
+	if team == Team.PLAYER and counts_for_accuracy:
 		Game.shots_fired += 1
 
 
@@ -63,7 +65,7 @@ func _on_body_entered(body: Node) -> void:
 		return
 	if body.has_method("take_damage"):
 		body.take_damage(damage)
-		if team == Team.PLAYER and body.is_in_group("enemies") and _already_hit.is_empty():
+		if team == Team.PLAYER and counts_for_accuracy and body.is_in_group("enemies") and _already_hit.is_empty():
 			Game.shots_hit += 1
 		_already_hit.append(body)
 		if pierce:

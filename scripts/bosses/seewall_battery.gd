@@ -1,9 +1,11 @@
 class_name SeewallBattery
 extends Node2D
 ## Mission 1 boss: the Seewall gun battery, a cliff-top fortress wall commanded by Kommandant Brandt.
-## Phase 1: two flak turrets, plus riflemen from the hatch.
+## Phase 1: two flak turrets take turns firing aimed volleys, plus riflemen from the hatch.
 ## Phase 2: the main cannon fires a ground-level shell (dodge it on the raised planks) between mortar rounds.
-## Phase 3: the exposed generator core sprays spiraling bullets while debris falls.
+## Phase 3: the exposed generator core sweeps arcs of bullets while debris falls.
+## Every volley fires its fastest shot first and its slowest last, so the shots string out in
+## flight and arrive at Grit one at a time, with room to jump or duck each one.
 ## The origin is the foot of the fortress wall, at ground level.
 
 signal defeated
@@ -15,6 +17,17 @@ const RiflemanScene := preload("res://scenes/enemies/rifleman.tscn")
 const StrikeScene := preload("res://scenes/fx/artillery_strike.tscn")
 const ExplosionScene := preload("res://scenes/fx/explosion.tscn")
 
+## Turret volley: one shot per speed, all aimed at Grit, launched together. From 150 px away
+## they arrive 1.0, 2.2 and 3.4 seconds later. The 1.2 s gaps leave time to land from one
+## jump (0.7 s in the air) before jumping the next shot.
+const TURRET_VOLLEY_SPEEDS := [150.0, 68.0, 44.0]
+const TURRET_VOLLEY_INTERVAL := 3.4
+## Core sweep: a wide arc of shots around Grit's direction, slowing as the sweep goes on.
+## The arc is wide enough that only about one shot per sweep crosses Grit's height.
+const CORE_SWEEP_SPEEDS := [120.0, 95.0, 78.0, 66.0, 57.0, 50.0]
+const CORE_SWEEP_ARC := 1.6
+const CORE_SWEEP_INTERVAL := 2.6
+
 ## Left edge of the arena floor, for aiming mortar rounds and debris.
 @export var arena_left := -220.0
 
@@ -23,7 +36,7 @@ var phase := Phase.DORMANT
 var _timer := 0.0
 var _attack_timer := 0.0
 var _spawn_timer := 4.0
-var _spiral_angle := 0.0
+var _sweep_direction := 1.0
 var _charging := false
 var _death_timer := 0.0
 
@@ -110,12 +123,18 @@ func _physics_process(delta: float) -> void:
 func _process_turrets(delta: float) -> void:
 	_attack_timer -= delta
 	if _attack_timer <= 0.0:
-		_attack_timer = 0.9
-		# Turrets take turns firing a three-shot flak fan at Grit.
-		var shooter := _turret_low if int(_timer / 0.9) % 2 == 0 else _turret_high
+		_attack_timer = TURRET_VOLLEY_INTERVAL
+		# Turrets take turns, so only one volley is in the air at a time.
+		var shooter := _turret_low if int(_timer / TURRET_VOLLEY_INTERVAL) % 2 == 0 else _turret_high
 		if shooter.is_destroyed():
 			shooter = _turret_high if shooter == _turret_low else _turret_low
-		_fire_fan(shooter.global_position + Vector2(-12, -shooter.size.y * 0.6 - 2))
+		var muzzle := shooter.global_position + Vector2(-12, -shooter.size.y * 0.6 - 2)
+		var aim := _aim_at_player(muzzle)
+		if not is_nan(aim):
+			var angles: Array = []
+			angles.resize(TURRET_VOLLEY_SPEEDS.size())
+			angles.fill(aim)
+			_fire_volley(muzzle, angles, TURRET_VOLLEY_SPEEDS)
 	_spawn_timer -= delta
 	if _spawn_timer <= 0.0:
 		_spawn_timer = 5.0
@@ -148,15 +167,17 @@ func _process_cannon(delta: float) -> void:
 func _process_core(delta: float) -> void:
 	_attack_timer -= delta
 	if _attack_timer <= 0.0:
-		_attack_timer = 0.12
-		_spiral_angle += 0.45
+		_attack_timer = CORE_SWEEP_INTERVAL
 		var origin := _core.global_position + Vector2(_core.size.x / 2.0, -_core.size.y / 2.0)
-		for offset in [0.0, PI]:
-			var direction := Vector2.from_angle(_spiral_angle + offset)
-			var bullet := BulletScene.instantiate() as Bullet
-			bullet.setup(Bullet.Team.ENEMY, origin, direction * 70.0, 1, Bullet.Style.FLAK)
-			bullet.lifetime = 4.0
-			get_parent().add_child(bullet)
+		var aim := _aim_at_player(origin)
+		if not is_nan(aim):
+			# Sweep across Grit's direction, alternating top-down and bottom-up.
+			var angles: Array = []
+			var count := CORE_SWEEP_SPEEDS.size()
+			for i in count:
+				angles.append(aim + _sweep_direction * lerpf(-CORE_SWEEP_ARC / 2.0, CORE_SWEEP_ARC / 2.0, float(i) / (count - 1)))
+			_sweep_direction = -_sweep_direction
+			_fire_volley(origin, angles, CORE_SWEEP_SPEEDS)
 	_spawn_timer -= delta
 	if _spawn_timer <= 0.0:
 		_spawn_timer = 1.6
@@ -179,15 +200,21 @@ func _process_destruction(delta: float) -> void:
 		Game.complete_mission()
 
 
-func _fire_fan(muzzle: Vector2) -> void:
+## Angle from `from` to Grit's chest, or NAN if he's down. Aiming at chest height means
+## shots fired at his level can be crouched under.
+func _aim_at_player(from: Vector2) -> float:
 	var player := get_tree().get_first_node_in_group("player") as Player
 	if player == null or player.dead:
-		return
-	var aim := (player.global_position + Vector2(0, -14) - muzzle).angle()
-	for spread in [-0.22, 0.0, 0.22]:
+		return NAN
+	return (player.global_position + Vector2(0, -14) - from).angle()
+
+
+## Fires one shot per entry, each with its own direction and speed.
+func _fire_volley(muzzle: Vector2, angles: Array, speeds: Array) -> void:
+	for i in speeds.size():
 		var bullet := BulletScene.instantiate() as Bullet
-		bullet.setup(Bullet.Team.ENEMY, muzzle, Vector2.from_angle(aim + spread) * 95.0, 1, Bullet.Style.FLAK)
-		bullet.lifetime = 3.5
+		bullet.setup(Bullet.Team.ENEMY, muzzle, Vector2.from_angle(angles[i]) * float(speeds[i]), 1, Bullet.Style.FLAK)
+		bullet.lifetime = 6.0
 		get_parent().add_child(bullet)
 
 

@@ -432,6 +432,22 @@ reward = "flame"
 position = Vector2(1620, 150)
 kind = "grenades"
 
+[node name="AmmoBox1" parent="Pickups" instance=ExtResource("12_pickup")]
+position = Vector2(1060, 128)
+kind = "ammo"
+
+[node name="AmmoBox2" parent="Pickups" instance=ExtResource("12_pickup")]
+position = Vector2(1990, 150)
+kind = "ammo"
+
+[node name="AmmoBox3" parent="Pickups" instance=ExtResource("12_pickup")]
+position = Vector2(2640, 150)
+kind = "ammo"
+
+[node name="AmmoBox4" parent="Pickups" instance=ExtResource("12_pickup")]
+position = Vector2(3110, -90)
+kind = "ammo"
+
 [node name="ArtilleryZone" type="Area2D" parent="."]
 position = Vector2(1640, 50)
 collision_layer = 0

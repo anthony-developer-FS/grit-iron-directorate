@@ -20,7 +20,7 @@ func _process(_delta: float) -> void:
 	var x := _player.global_position.x
 	var y := _player.global_position.y
 	_shot_once("01_parachute_drop", _time > 1.0)
-	_shot_once("02_beach", x > 640.0)
+	_shot_once("02_beach", x > 600.0)
 	_shot_once("03_trenches", x > 1150.0)
 	_shot_once("04_mg_nest", x > 1400.0)
 	_shot_once("05_artillery", x > 1880.0)
@@ -32,6 +32,8 @@ func _process(_delta: float) -> void:
 	_shot_once("11_boss_turrets", _boss.phase == SeewallBattery.Phase.TURRETS and _boss_time > 2.0)
 	_shot_once("12_boss_cannon", _boss.phase == SeewallBattery.Phase.CANNON and _boss._charging)
 	_shot_once("13_boss_core", _boss.phase == SeewallBattery.Phase.CORE and _boss._timer > 1.5)
+	var helping := get_tree().get_nodes_in_group("pows").any(func(pow: Node) -> bool: return pow is Pow and pow.is_fighting())
+	_shot_once("03b_pow_helping", helping and x > 760.0)
 	_shot_once("14_results", (_level.get_node("HUD/Results") as Control).visible)
 
 
