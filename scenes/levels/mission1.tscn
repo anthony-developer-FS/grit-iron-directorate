@@ -22,6 +22,7 @@
 [ext_resource type="Script" path="res://scripts/level/artillery_zone.gd" id="20_artillery"]
 [ext_resource type="Script" path="res://scripts/level/checkpoint.gd" id="21_checkpoint"]
 [ext_resource type="Script" path="res://scripts/fx/rain.gd" id="22_rain"]
+[ext_resource type="Texture2D" path="res://assets/sprites/sky.png" id="23_sky"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_480x120"]
 size = Vector2(480, 120)
@@ -42,6 +43,11 @@ layer = -10
 offset_right = 320.0
 offset_bottom = 180.0
 color = Color(0.09, 0.12, 0.17, 1)
+
+[node name="Clouds" type="TextureRect" parent="Sky"]
+offset_right = 320.0
+offset_bottom = 180.0
+texture = ExtResource("23_sky")
 
 [node name="Parallax" type="Parallax2D" parent="."]
 z_index = -5
@@ -194,136 +200,136 @@ kind = "sign"
 position = Vector2(0, 150)
 script = ExtResource("2_block")
 size = Vector2(1000, 40)
-color = Color(0.55, 0.47, 0.33, 1)
+surface = "sand"
 
 [node name="Sandbags1" type="StaticBody2D" parent="World"]
 position = Vector2(500, 134)
 script = ExtResource("2_block")
 size = Vector2(24, 16)
-color = Color(0.6, 0.52, 0.36, 1)
+surface = "sandbags"
 
 [node name="Dune" type="StaticBody2D" parent="World"]
 position = Vector2(620, 138)
 script = ExtResource("2_block")
 size = Vector2(70, 12)
-color = Color(0.55, 0.47, 0.33, 1)
+surface = "sand"
 
 [node name="SandbagTower" type="StaticBody2D" parent="World"]
 position = Vector2(880, 126)
 script = ExtResource("2_block")
 size = Vector2(30, 24)
-color = Color(0.6, 0.52, 0.36, 1)
+surface = "sandbags"
 
 [node name="TrenchGroundA" type="StaticBody2D" parent="World"]
 position = Vector2(1000, 150)
 script = ExtResource("2_block")
 size = Vector2(230, 40)
-color = Color(0.42, 0.36, 0.27, 1)
+surface = "dirt"
 
 [node name="DugoutFloor" type="StaticBody2D" parent="World"]
 position = Vector2(1230, 172)
 script = ExtResource("2_block")
 size = Vector2(50, 18)
-color = Color(0.42, 0.36, 0.27, 1)
+surface = "dirt"
 
 [node name="DugoutStep" type="StaticBody2D" parent="World"]
 position = Vector2(1266, 160)
 script = ExtResource("2_block")
 size = Vector2(14, 12)
-color = Color(0.42, 0.36, 0.27, 1)
+surface = "dirt"
 
 [node name="TrenchGroundB" type="StaticBody2D" parent="World"]
 position = Vector2(1280, 150)
 script = ExtResource("2_block")
 size = Vector2(1620, 40)
-color = Color(0.42, 0.36, 0.27, 1)
+surface = "dirt"
 
 [node name="ParapetA" type="StaticBody2D" parent="World"]
 position = Vector2(1000, 128)
 script = ExtResource("2_block")
 size = Vector2(80, 22)
-color = Color(0.6, 0.52, 0.36, 1)
+surface = "sandbags"
 
 [node name="ParapetB1" type="StaticBody2D" parent="World"]
 position = Vector2(1200, 128)
 script = ExtResource("2_block")
 size = Vector2(30, 22)
-color = Color(0.6, 0.52, 0.36, 1)
+surface = "sandbags"
 
 [node name="DugoutRoof" type="StaticBody2D" parent="World"]
 position = Vector2(1230, 128)
 script = ExtResource("2_block")
 size = Vector2(50, 5)
-color = Color(0.45, 0.32, 0.2, 1)
+surface = "wood"
 one_way = true
 
 [node name="ParapetB2" type="StaticBody2D" parent="World"]
 position = Vector2(1280, 128)
 script = ExtResource("2_block")
 size = Vector2(20, 22)
-color = Color(0.6, 0.52, 0.36, 1)
+surface = "sandbags"
 
 [node name="ParapetC" type="StaticBody2D" parent="World"]
 position = Vector2(1420, 128)
 script = ExtResource("2_block")
 size = Vector2(90, 22)
-color = Color(0.6, 0.52, 0.36, 1)
+surface = "sandbags"
 
 [node name="MortarBluff" type="StaticBody2D" parent="World"]
 position = Vector2(2120, 118)
 script = ExtResource("2_block")
 size = Vector2(90, 32)
-color = Color(0.42, 0.36, 0.27, 1)
+surface = "dirt"
 
 [node name="BunkerRoof" type="StaticBody2D" parent="World"]
 position = Vector2(2600, -90)
 script = ExtResource("2_block")
 size = Vector2(280, 160)
-color = Color(0.25, 0.27, 0.29, 1)
+surface = "rock"
 
 [node name="POWShelf" type="StaticBody2D" parent="World"]
 position = Vector2(2780, 118)
 script = ExtResource("2_block")
 size = Vector2(40, 5)
-color = Color(0.45, 0.32, 0.2, 1)
+surface = "wood"
 one_way = true
 
 [node name="ShaftWall" type="StaticBody2D" parent="World"]
 position = Vector2(2880, -200)
 script = ExtResource("2_block")
 size = Vector2(20, 270)
-color = Color(0.25, 0.27, 0.29, 1)
+surface = "rock"
 
 [node name="ShaftFloor" type="StaticBody2D" parent="World"]
 position = Vector2(2900, 156)
 script = ExtResource("2_block")
 size = Vector2(60, 34)
-color = Color(0.3, 0.32, 0.34, 1)
+surface = "metal"
 
 [node name="Cliff" type="StaticBody2D" parent="World"]
 position = Vector2(2960, -90)
 script = ExtResource("2_block")
 size = Vector2(760, 280)
-color = Color(0.25, 0.27, 0.29, 1)
+surface = "rock"
 
 [node name="CliffSandbags" type="StaticBody2D" parent="World"]
 position = Vector2(3200, -106)
 script = ExtResource("2_block")
 size = Vector2(30, 16)
-color = Color(0.6, 0.52, 0.36, 1)
+surface = "sandbags"
 
 [node name="ArenaPlank1" type="StaticBody2D" parent="World"]
 position = Vector2(3390, -122)
 script = ExtResource("2_block")
 size = Vector2(44, 5)
-color = Color(0.45, 0.32, 0.2, 1)
+surface = "wood"
 one_way = true
 
 [node name="ArenaPlank2" type="StaticBody2D" parent="World"]
 position = Vector2(3460, -122)
 script = ExtResource("2_block")
 size = Vector2(44, 5)
-color = Color(0.45, 0.32, 0.2, 1)
+surface = "wood"
 one_way = true
 
 [node name="Elevator" parent="World" instance=ExtResource("13_elevator")]

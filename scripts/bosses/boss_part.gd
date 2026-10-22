@@ -6,6 +6,13 @@ extends StaticBody2D
 signal destroyed
 
 const ExplosionScene := preload("res://scenes/fx/explosion.tscn")
+## Frames from tools/art/boss.py: closed, open, hit flash, wrecked. Each sheet's frame size and
+## where the part's bottom-left corner sits inside a frame.
+const SHEETS := {
+	"turret": [preload("res://assets/sprites/boss_turret.png"), Vector2(34, 22), Vector2(13, 21)],
+	"breech": [preload("res://assets/sprites/boss_breech.png"), Vector2(26, 28), Vector2(1, 27)],
+	"core": [preload("res://assets/sprites/boss_core.png"), Vector2(26, 26), Vector2(1, 25)],
+}
 
 @export var max_health := 40
 @export var size := Vector2(20, 16)
@@ -70,25 +77,25 @@ func take_damage(amount: int) -> void:
 
 
 func _draw() -> void:
-	var rect := Rect2(0, -size.y, size.x, size.y)
+	var entry: Array = SHEETS[kind]
+	var frame_size: Vector2 = entry[1]
+	var frame := 0
 	if is_destroyed():
-		draw_rect(rect.grow(-2), Color("2a2522"))
+		frame = 3
+	elif _hit_flash > 0.0:
+		frame = 2
+	elif vulnerable:
+		frame = 1
+	draw_texture_rect_region(entry[0], Rect2(-entry[2], frame_size), Rect2(Vector2(frame * frame_size.x, 0), frame_size))
+	if is_destroyed():
 		return
-	var flash := _hit_flash > 0.0
-	match kind:
-		"turret":
-			draw_rect(rect, Color.WHITE if flash else Color("6a6e72"))
-			draw_rect(Rect2(-10, -size.y * 0.6, 12, 4), Color("2b2b2b"))
-			draw_rect(Rect2(-12, -size.y * 0.6 - 4, 4, 4), Color("ff4632") if vulnerable else Color("2b2b2b"))
-		"breech":
-			draw_rect(rect, Color.WHITE if flash else Color("4a4e54"))
-			draw_rect(Rect2(4, -size.y + 4, size.x - 8, size.y - 8), Color(1.0, 0.5 + 0.5 * charge, 0.2, 0.3 + 0.7 * charge) if vulnerable else Color("2b2b2b"))
-		"core":
-			var glow := Color(0.3, 1.0, 0.8, 0.6 + 0.4 * sin(Time.get_ticks_msec() / 80.0))
-			draw_rect(rect, Color.WHITE if flash else Color("2b3a3a"))
-			if vulnerable:
-				draw_circle(rect.get_center(), size.x * 0.35, glow)
-				queue_redraw()
+	var rect := Rect2(0, -size.y, size.x, size.y)
+	if kind == "breech" and vulnerable and charge > 0.0:
+		draw_rect(Rect2(4, -size.y + 4, size.x - 8, size.y - 8), Color(1.0, 0.5 + 0.5 * charge, 0.2, 0.3 + 0.7 * charge))
+	if kind == "core" and vulnerable:
+		var glow := Color(0.3, 1.0, 0.8, 0.6 + 0.4 * sin(Time.get_ticks_msec() / 80.0))
+		draw_circle(rect.get_center(), size.x * 0.3, glow)
+		queue_redraw()
 	if vulnerable:
 		var bar := Rect2(0, -size.y - 4, size.x, 2)
 		draw_rect(bar, Color("3a0d0d"))
