@@ -52,6 +52,7 @@ func _physics_process(delta: float) -> void:
 		var bullet := BulletScene.instantiate() as Bullet
 		bullet.setup(Bullet.Team.ENEMY, global_position + Vector2(facing * 16, -12), direction * BULLET_SPEED, 1)
 		get_parent().add_child(bullet)
+		Sfx.play("mg_shot")
 		_shots_left -= 1
 		_timer = BURST_INTERVAL if _shots_left > 0 else 2.2
 	queue_redraw()
@@ -60,6 +61,7 @@ func _physics_process(delta: float) -> void:
 func take_damage(amount: int) -> void:
 	if dead:
 		return
+	Sfx.play("hit")
 	health -= amount
 	_hit_flash = 0.06
 	queue_redraw()

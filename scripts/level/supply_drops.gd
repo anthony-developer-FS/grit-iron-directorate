@@ -47,6 +47,7 @@ func drop() -> void:
 	if Game.grenades <= LOW_GRENADES:
 		_spawn("grenades", x + 28.0)
 	Game.show_message("SUPPLY DROP!", 1.2)
+	Sfx.play("supply_drop", 0.0)
 
 
 func _spawn(kind: String, x: float) -> void:

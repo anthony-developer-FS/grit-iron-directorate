@@ -83,6 +83,8 @@ func _set_phase(new_phase: Phase) -> void:
 			_turret_low.vulnerable = true
 			_turret_high.vulnerable = true
 			Game.show_message("SILENCE THE SEEWALL!", 2.0)
+			Sfx.play("alarm", 0.0)
+			Music.play("boss")
 		Phase.CANNON:
 			_breech.vulnerable = true
 			_attack_timer = 1.5
@@ -150,6 +152,7 @@ func _process_cannon(delta: float) -> void:
 	if not _charging and _attack_timer <= 0.0:
 		_charging = true
 		_attack_timer = 1.4
+		Sfx.play("cannon_charge", 0.0)
 	elif _charging:
 		_breech.charge = 1.0 - _attack_timer / 1.4
 		if _attack_timer <= 0.0:
@@ -160,6 +163,7 @@ func _process_cannon(delta: float) -> void:
 			shell.setup(Bullet.Team.ENEMY, global_position + Vector2(-50, -9), Vector2(-150, 0), 1, Bullet.Style.SHELL)
 			get_parent().add_child(shell)
 			Game.shake(5.0, 0.3)
+			Sfx.play("cannon")
 			for i in 2:
 				_call_strike(randf_range(arena_left + 20.0, -60.0), 1.4)
 	_spawn_timer -= delta
@@ -215,6 +219,7 @@ func _aim_at_player(from: Vector2) -> float:
 
 ## Fires one shot per entry, each with its own direction and speed.
 func _fire_volley(muzzle: Vector2, angles: Array, speeds: Array) -> void:
+	Sfx.play("flak")
 	for i in speeds.size():
 		var bullet := BulletScene.instantiate() as Bullet
 		bullet.setup(Bullet.Team.ENEMY, muzzle, Vector2.from_angle(angles[i]) * float(speeds[i]), 1, Bullet.Style.FLAK)

@@ -13,6 +13,7 @@ func _ready() -> void:
 	if Game.checkpoint_position != Vector2.INF:
 		_player.place_at(Game.checkpoint_position)
 	_camera.snap_to_target()
+	Music.play("mission")
 	var drops := SupplyDrops.new()
 	drops.player = _player
 	drops.camera = _camera

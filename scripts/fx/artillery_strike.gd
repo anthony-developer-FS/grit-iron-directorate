@@ -20,7 +20,14 @@ static func find_ground(space: PhysicsDirectSpaceState2D, from: Vector2) -> Vect
 	return hit["position"] if hit else from
 
 
+func _ready() -> void:
+	Sfx.play("flare", 0.0)
+
+
 func _process(delta: float) -> void:
+	var whistle_at := maxf(warning_time + FALL_TIME - 0.9, 0.0)
+	if _time < whistle_at and _time + delta >= whistle_at:
+		Sfx.play("shell_whistle", 0.1)
 	_time += delta
 	if not _exploded and _time >= warning_time + FALL_TIME:
 		_exploded = true

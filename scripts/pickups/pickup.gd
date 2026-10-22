@@ -108,11 +108,14 @@ func _on_body_entered(body: Node) -> void:
 	match kind:
 		"grenades":
 			Game.add_grenades(10)
+			Sfx.play("pickup_item", 0.0)
 			Game.show_message("BOMBS +10", 1.0)
 		"ammo":
+			Sfx.play("pickup_item", 0.0)
 			Game.show_message(player.reload_special() + " AMMO!", 1.0)
 		_:
 			player.give_weapon(kind)
+			Sfx.play("pickup_weapon", 0.0)
 			Game.show_message(String(Player.WEAPONS[kind]["label"]) + "!", 1.0)
 	Game.add_score(200)
 	queue_free()

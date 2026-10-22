@@ -65,6 +65,7 @@ func _think(_delta: float, _player: Player) -> void:
 func take_damage(amount: int) -> void:
 	if dead:
 		return
+	Sfx.play("hit")
 	health -= amount
 	_hit_flash = 0.08
 	if health <= 0:
@@ -75,6 +76,7 @@ func take_damage(amount: int) -> void:
 func die() -> void:
 	if dead:
 		return
+	Sfx.play("enemy_die")
 	dead = true
 	remove_from_group("enemies")
 	set_deferred("collision_layer", 0)
@@ -113,6 +115,7 @@ func _is_on_screen() -> bool:
 func _fire_bullet(from: Vector2, direction: Vector2, speed: float) -> void:
 	var bullet := BulletScene.instantiate() as Bullet
 	bullet.setup(Bullet.Team.ENEMY, from, direction.normalized() * speed, 1)
+	Sfx.play("enemy_shot")
 	get_parent().add_child(bullet)
 
 
