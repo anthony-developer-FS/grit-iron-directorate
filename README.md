@@ -1,21 +1,35 @@
-# GRIT: Iron Directorate
+# Vanguard Ops: Kesselstadt Run
 
-A Metal Slug style run-and-gun shooter, built in Godot 4. This is Game 1 of a planned trilogy.
+A Metal Slug style run-and-gun shooter, built in Godot 4. This is Game 1 of the planned Vanguard Ops trilogy.
 
 1944, in an alternate, diesel-choked world. Sergeant "Grit" Calloway of the Allied Special Operations Vanguard is dropped behind enemy lines to fight through the Iron Directorate and bring Supreme Chancellor Vane to justice.
 
 **Current goal:** one complete level, Mission 1 "Operation Breakwater" (a rain-slicked coastal bunker network), ending in a boss fight against the Seewall gun battery.
 
-![Prototype gameplay](docs/screenshots/prototype.png)
+![Mission 1: the beach](docs/screenshots/beach.png)
 
 ## Status
 
 | Step | What | State |
 | --- | --- | --- |
 | 1 | Design doc | Done |
-| 2 | Playable prototype with placeholder art | In progress |
-| 3 | Full Mission 1 in gray-box art, with the boss | Not started |
+| 2 | Playable prototype with placeholder art | Done |
+| 3 | Full Mission 1 in gray-box art, with the boss | In review |
 | 4 | Final art, sound, menus and desktop builds | Not started |
+
+## Mission 1: Operation Breakwater
+
+1. **Night drop:** Grit parachutes onto the beach in the storm.
+2. **Beach obstacles:** sandbags, a dune and grenadiers; the first POW hands over the heavy machine gun.
+3. **Trench line:** parapets, shield troopers and an MG nest. A POW is hidden in a dugout under a plank (Down + Jump).
+4. **Artillery barrage:** flares mark where shells will land; mortar crews hold the bluff.
+5. **Half-track ambush:** the camera locks and an armored half-track rolls in. Beat it for the rocket launcher.
+6. **Bunker interior:** another MG nest, a POW on a high shelf, and a freight elevator up the cliff while troops drop in.
+7. **Cliff top and boss:** checkpoint, then the Seewall battery in three phases: flak turrets, the main cannon (get up on the planks), and the exposed generator core.
+
+Pick **Easy** (3 hits per life) or **Hard** (one hit, arcade rules) on the title screen.
+
+![Seewall battery, final phase](docs/screenshots/boss_core.png)
 
 ## Running the game
 
@@ -34,35 +48,41 @@ A Metal Slug style run-and-gun shooter, built in Godot 4. This is Game 1 of a pl
 | Jump (Down + Jump drops through planks) | Z or Space | A / Cross |
 | Shoot (knife when an enemy is close) | X or J | X / Square |
 | Grenade | C or K | B / Circle |
-| Pause | Esc or P | Start |
+| Pause (then Grenade: restart from checkpoint, Jump: quit to title) | Esc or P | Start |
 | Fullscreen | F11 | |
 
 ## Project layout
 
 ```
-project.godot            Engine settings (320x180 pixel-perfect, integer scaling)
-scripts/autoload/game.gd Global state: score, lives, grenades, input bindings, signals
-scripts/player/          Grit: movement, aiming, weapons, knife, grenades, death and respawn
-scripts/enemies/         Enemy behavior (rifleman so far)
-scripts/projectiles/     Bullets and grenades
-scripts/fx/              Explosions
-scripts/pickups/         Weapon and grenade crates, POW prisoners
-scripts/camera/          Forward-only scrolling camera with screen shake
-scripts/level/           Gray-box blocks, backdrop, level goal
-scripts/ui/              HUD, pause and game over screens
-scenes/                  Scenes matching the scripts above
-scenes/levels/test_range.tscn  The prototype test level (main scene)
-tests/                   Automated smoke test and screenshot tour
+project.godot             Engine settings (320x180 pixel-perfect, integer scaling)
+scripts/autoload/game.gd  Global state: score, lives, difficulty, checkpoint, stats, input bindings
+scripts/player/           Grit: movement, parachute, aiming, 5 weapons, knife, grenades, health
+scripts/enemies/          Rifleman, grenadier, shield trooper, mortar crew, MG nest, half-track
+scripts/bosses/           Seewall battery boss and its destructible parts
+scripts/projectiles/      Bullets (incl. shotgun pellets, flames, flak, cannon shell), grenades, rockets
+scripts/fx/               Explosions, artillery strikes, rain
+scripts/pickups/          Weapon and grenade crates, POW prisoners
+scripts/camera/           Forward-only camera with vertical follow, arena locks and screen shake
+scripts/level/            Gray-box blocks, props, triggers, elevator, checkpoint, mission root
+scripts/ui/               Title screen, HUD, pause, game over and results screens
+scenes/levels/mission1.tscn  Operation Breakwater
+tests/                    End-to-end mission test and screenshot tour
 ```
 
-All art is drawn in code for now (`_draw()` placeholders). Real pixel art replaces it in step 4.
+All art is still drawn in code (`_draw()` placeholders). Real pixel art replaces it in step 4.
 
 ## Tests
 
-A bot plays the test range and checks that moving, scrolling, shooting, grenades, POW rescues, weapon pickups, death and respawn all work:
+A bot plays all of Mission 1, from the parachute drop to the boss, and checks every beat: checkpoint, elevator, arena locks, the half-track, weapon pickups, mortars, all boss phases, mission complete and the results screen. It also checks Easy mode's 3 hits per life.
 
 ```
-godot --headless --fixed-fps 60 res://tests/smoke_test.tscn
+godot --headless --fixed-fps 60 res://tests/mission_test.tscn
 ```
 
-It prints `SMOKE TEST PASSED` and exits with code 0, or lists what failed and exits with code 1.
+It prints `MISSION TEST PASSED` and exits with code 0, or lists what failed and exits with code 1. GitHub runs it on every push and pull request.
+
+To capture a screenshot at each beat (needs a display):
+
+```
+godot --fixed-fps 60 res://tests/screenshot_tour.tscn -- /path/to/output
+```

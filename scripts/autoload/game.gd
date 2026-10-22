@@ -8,8 +8,14 @@ signal weapon_changed(label: String, ammo: int)
 signal pows_changed(count: int)
 signal shake_requested(strength: float, duration: float)
 signal message_requested(text: String, duration: float)
+signal player_health_changed(health: int)
+signal checkpoint_reached
+signal boss_health_changed(fraction: float)
+signal mission_completed
 signal game_over
 signal continued
+
+enum Difficulty { EASY, HARD }
 
 const START_LIVES := 3
 const START_GRENADES := 10
@@ -19,11 +25,90 @@ var lives := START_LIVES
 var grenades := START_GRENADES
 var pows_rescued := 0
 var is_game_over := false
+var difficulty := Difficulty.HARD
+
+# Mission stats for the results screen.
+var shots_fired := 0
+var shots_hit := 0
+var mission_time := 0.0
+var mission_running := false
+
+## Where "restart from checkpoint" puts Grit. Vector2.INF means the mission start.
+var checkpoint_position := Vector2.INF
+var checkpoint_score := 0
+var checkpoint_pows := 0
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_input()
+
+
+func _process(delta: float) -> void:
+	if mission_running and not get_tree().paused:
+		mission_time += delta
+
+
+## Hits Grit can take per life: 3 on Easy, 1 on Hard (the arcade rule).
+func hits_per_life() -> int:
+	return 3 if difficulty == Difficulty.EASY else 1
+
+
+## Resets everything for a fresh run of the mission.
+func start_mission() -> void:
+	score = 0
+	lives = START_LIVES
+	grenades = START_GRENADES
+	pows_rescued = 0
+	shots_fired = 0
+	shots_hit = 0
+	mission_time = 0.0
+	checkpoint_position = Vector2.INF
+	checkpoint_score = 0
+	checkpoint_pows = 0
+	is_game_over = false
+	mission_running = true
+	get_tree().paused = false
+
+
+## Reloads the mission at the last checkpoint, with the score it had there.
+func restart_from_checkpoint() -> void:
+	var spot := checkpoint_position
+	var saved_score := checkpoint_score
+	var saved_pows := checkpoint_pows
+	var saved_time := mission_time
+	start_mission()
+	checkpoint_position = spot
+	checkpoint_score = saved_score
+	checkpoint_pows = saved_pows
+	score = saved_score
+	pows_rescued = saved_pows
+	mission_time = saved_time
+	get_tree().reload_current_scene()
+
+
+func reach_checkpoint(spot: Vector2) -> void:
+	checkpoint_position = spot
+	checkpoint_score = score
+	checkpoint_pows = pows_rescued
+	checkpoint_reached.emit()
+	show_message("CHECKPOINT", 1.5)
+
+
+func complete_mission() -> void:
+	if not mission_running:
+		return
+	mission_running = false
+	mission_completed.emit()
+
+
+func accuracy() -> float:
+	return 0.0 if shots_fired == 0 else float(shots_hit) / float(shots_fired)
+
+
+## Bonus for finishing fast: 10 points per second under 5 minutes.
+func speed_bonus() -> int:
+	return maxi(0, int(300.0 - mission_time)) * 10
 
 
 func _unhandled_input(event: InputEvent) -> void:

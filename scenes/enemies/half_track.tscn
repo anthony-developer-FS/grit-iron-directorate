@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/half_track.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(64, 30)
+
+[node name="HalfTrack" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 1
+script = ExtResource("1_script")
+max_health = 40
+score_value = 2000
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+position = Vector2(2, -15)
+shape = SubResource("RectangleShape2D_body")

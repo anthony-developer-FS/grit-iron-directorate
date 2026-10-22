@@ -1,4 +1,4 @@
-name: Smoke test
+name: Mission test
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  smoke-test:
+  mission-test:
     runs-on: ubuntu-latest
     env:
       GODOT_VERSION: 4.5.1
@@ -23,8 +23,8 @@ jobs:
       - name: Import project
         run: ./godot --headless --import || true
 
-      - name: Run smoke test
+      - name: Run mission test
         run: |
-          ./godot --headless --fixed-fps 60 res://tests/smoke_test.tscn 2>&1 | tee smoke.log
-          grep -q "SMOKE TEST PASSED" smoke.log
-          ! grep -q "SCRIPT ERROR" smoke.log
+          ./godot --headless --fixed-fps 60 res://tests/mission_test.tscn 2>&1 | tee mission.log
+          grep -q "MISSION TEST PASSED" mission.log
+          ! grep -q "SCRIPT ERROR" mission.log

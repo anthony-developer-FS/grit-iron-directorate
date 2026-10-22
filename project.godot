@@ -10,9 +10,9 @@ config_version=5
 
 [application]
 
-config/name="GRIT: Iron Directorate"
+config/name="Vanguard Ops: Kesselstadt Run"
 config/description="A Metal Slug style run-and-gun shooter. Mission 1: Operation Breakwater."
-run/main_scene="res://scenes/levels/test_range.tscn"
+run/main_scene="res://scenes/ui/title.tscn"
 config/icon="res://icon.svg"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 

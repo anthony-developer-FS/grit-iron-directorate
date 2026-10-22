@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/bosses/seewall_battery.gd" id="1_boss"]
+[ext_resource type="Script" path="res://scripts/bosses/boss_part.gd" id="2_part"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(100, 124)
+
+[node name="SeewallBattery" type="Node2D"]
+script = ExtResource("1_boss")
+
+[node name="Wall" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape2D" parent="Wall"]
+position = Vector2(50, -62)
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="TurretLow" type="StaticBody2D" parent="."]
+position = Vector2(-6, -8)
+script = ExtResource("2_part")
+max_health = 40
+size = Vector2(20, 18)
+
+[node name="TurretHigh" type="StaticBody2D" parent="."]
+position = Vector2(-6, -42)
+script = ExtResource("2_part")
+max_health = 40
+size = Vector2(20, 18)
+
+[node name="Breech" type="StaticBody2D" parent="."]
+position = Vector2(-2, -2)
+script = ExtResource("2_part")
+max_health = 80
+size = Vector2(24, 26)
+kind = "breech"
+
+[node name="Core" type="StaticBody2D" parent="."]
+position = Vector2(-4, -38)
+script = ExtResource("2_part")
+max_health = 60
+size = Vector2(24, 24)
+kind = "core"

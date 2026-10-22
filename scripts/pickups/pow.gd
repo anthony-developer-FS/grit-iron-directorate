@@ -8,7 +8,7 @@ const SALUTE_TIME := 0.6
 const RUN_SPEED := 70.0
 const PickupScene := preload("res://scenes/pickups/pickup.tscn")
 
-@export_enum("hmg", "grenades") var reward := "hmg"
+@export_enum("hmg", "rocket", "shotgun", "flame", "grenades") var reward := "hmg"
 
 var state := State.TIED
 var _timer := 0.0
@@ -16,6 +16,7 @@ var _rescuer: Player
 
 
 func _ready() -> void:
+	add_to_group("pows")
 	body_entered.connect(_on_body_entered)
 
 

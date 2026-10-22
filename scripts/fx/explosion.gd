@@ -1,19 +1,26 @@
 class_name Explosion
 extends Node2D
-## Splash damage plus a placeholder fireball. Damages everything in `target_group` within `radius`.
+## Splash damage plus a placeholder fireball. Damages enemies and/or Grit within `radius`.
 
 const DURATION := 0.4
 
 @export var radius := 24.0
 @export var damage := 5
-@export var target_group := &"enemies"
+@export var hurts_enemies := true
+@export var hurts_player := false
+@export var shake_strength := 4.0
 
 var _time := 0.0
 
 
 func _ready() -> void:
-	Game.shake(4.0, 0.25)
-	for target in get_tree().get_nodes_in_group(target_group):
+	Game.shake(shake_strength, 0.25)
+	var targets: Array[Node] = []
+	if hurts_enemies:
+		targets.append_array(get_tree().get_nodes_in_group("enemies"))
+	if hurts_player:
+		targets.append_array(get_tree().get_nodes_in_group("player"))
+	for target in targets:
 		if not target is Node2D or not target.has_method("take_damage"):
 			continue
 		# Targets have their origin at their feet, so measure to roughly their center.
