@@ -43,6 +43,8 @@ var dead := false
 var parachuting := false
 var weapon := "pistol"
 var ammo := -1
+## The last special weapon Grit picked up. Ammo boxes bring it back if he's down to the pistol.
+var last_special := ""
 ## Hits left in this life (1 on Hard, 3 on Easy).
 var health := 1
 ## Set by the camera every frame so Grit can't leave the screen.
@@ -121,9 +123,21 @@ func _physics_process(delta: float) -> void:
 
 
 func give_weapon(weapon_name: String) -> void:
+	if weapon_name != "pistol":
+		last_special = weapon_name
 	weapon = weapon_name
 	ammo = WEAPONS[weapon_name]["ammo"]
 	Game.set_weapon(WEAPONS[weapon_name]["label"], ammo)
+
+
+## Ammo box: refills the special weapon in hand, or re-arms the last one Grit had
+## (the heavy MG if he's never had one). Returns the weapon's label.
+func reload_special() -> String:
+	var weapon_name := weapon
+	if weapon_name == "pistol":
+		weapon_name = last_special if last_special != "" else "hmg"
+	give_weapon(weapon_name)
+	return WEAPONS[weapon_name]["label"]
 
 
 ## Damage interface shared by everything that can be shot. On Hard Grit dies in one hit; on Easy he has 3 hits per life.

@@ -42,6 +42,7 @@ func _ready() -> void:
 	Game.mission_completed.connect(func() -> void: _seen["mission_completed"] = true)
 	Game.checkpoint_reached.connect(func() -> void: _seen["checkpoint"] = true)
 	_check_difficulty()
+	_check_volley_spacing()
 	Game.difficulty = Game.Difficulty.HARD
 	_player.god_mode = true
 	Game.lives = 99
@@ -59,6 +60,16 @@ func _check_difficulty() -> void:
 		_fail("Easy mode: no mercy invulnerability after a hit")
 
 
+## Turret volleys must string out so each shot can be jumped on its own: fastest first,
+## and more time between arrivals than a jump takes when Grit is 150 px away.
+func _check_volley_spacing() -> void:
+	var speeds := SeewallBattery.TURRET_VOLLEY_SPEEDS
+	for i in range(1, speeds.size()):
+		var gap: float = 150.0 / speeds[i] - 150.0 / speeds[i - 1]
+		if gap < 1.0:
+			_fail("turret volley shots %d and %d arrive only %.2fs apart" % [i, i + 1, gap])
+
+
 func _physics_process(delta: float) -> void:
 	if _player == null or _done:
 		return
@@ -73,6 +84,9 @@ func _physics_process(delta: float) -> void:
 		_seen["rode_elevator"] = true
 	if _player.weapon != "pistol":
 		_seen["weapon_" + _player.weapon] = true
+	for pow in get_tree().get_nodes_in_group("pows"):
+		if pow is Pow and pow.is_fighting():
+			_seen["pow_fighting"] = true
 	if _camera.locked:
 		_seen["camera_locked"] = true
 	if _boss.phase != SeewallBattery.Phase.DORMANT:
@@ -146,10 +160,17 @@ func _finish() -> void:
 		"boss_phase_3": "boss never reached the core phase",
 		"boss_phase_4": "boss was never destroyed",
 		"mission_completed": "mission never completed",
+		"pow_fighting": "no rescued POW fought alongside Grit",
 	}
 	for key in expectations:
 		if not _seen.has(key):
 			_fail(expectations[key])
+	var ammo_left := 0
+	for i in range(1, 5):
+		if _level.get_node_or_null("Pickups/AmmoBox%d" % i):
+			ammo_left += 1
+	if ammo_left > 2:
+		_fail("only %d of 4 ammo boxes collected" % (4 - ammo_left))
 	if Game.pows_rescued < 2:
 		_fail("only %d POWs rescued" % Game.pows_rescued)
 	var results := _level.get_node("HUD/Results") as Control
