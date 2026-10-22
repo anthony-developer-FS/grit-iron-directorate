@@ -28,3 +28,9 @@ jobs:
           ./godot --headless --fixed-fps 60 res://tests/mission_test.tscn 2>&1 | tee mission.log
           grep -q "MISSION TEST PASSED" mission.log
           ! grep -q "SCRIPT ERROR" mission.log
+
+      - name: Run menu test
+        run: |
+          ./godot --headless --fixed-fps 60 res://tests/menu_test.tscn 2>&1 | tee menu.log
+          grep -q "MENU TEST PASSED" menu.log
+          ! grep -q "SCRIPT ERROR" menu.log

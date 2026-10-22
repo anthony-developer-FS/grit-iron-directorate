@@ -97,7 +97,7 @@ func _draw() -> void:
 	match state:
 		State.PANIC:
 			_draw_frame(0, _cycle(FRAMES, "panic", 2, 8.0))
-			draw_string(ThemeDB.fallback_font, Vector2(-2, -32), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("ffe066"))
+			draw_string(ThemeDB.fallback_font, Vector2(-2, -32), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("ffe066"))
 		State.AIM:
 			_draw_frame(0, FRAMES.find("aim"))
 			# Blinking red telegraph at the muzzle before the shot.

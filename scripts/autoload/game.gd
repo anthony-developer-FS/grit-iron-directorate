@@ -112,14 +112,6 @@ func speed_bonus() -> int:
 	return maxi(0, int(300.0 - mission_time)) * 10
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("toggle_fullscreen"):
-		if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN:
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		else:
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-
-
 func add_score(points: int) -> void:
 	score += points
 	score_changed.emit(score)
