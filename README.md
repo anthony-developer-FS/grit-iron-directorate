@@ -6,6 +6,8 @@ A Metal Slug style run-and-gun shooter, built in Godot 4. This is Game 1 of a pl
 
 **Current goal:** one complete level, Mission 1 "Operation Breakwater" (a rain-slicked coastal bunker network), ending in a boss fight against the Seewall gun battery.
 
+![Prototype gameplay](docs/screenshots/prototype.png)
+
 ## Status
 
 | Step | What | State |
